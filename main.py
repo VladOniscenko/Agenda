@@ -6,7 +6,7 @@ import os
 def main():
     agenda = Agenda()
     agenda.create_task('vlad', 'ahahhaha')
-    print(agenda)
+    print(agenda.task_manager)
 
 if __name__ == '__main__':
     main()
