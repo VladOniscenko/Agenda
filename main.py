@@ -5,7 +5,8 @@ import os
 
 def main():
     agenda = Agenda()
-    agenda.display()
+    agenda.create_task('vlad', 'ahahhaha')
+    print(agenda)
 
 if __name__ == '__main__':
     main()
