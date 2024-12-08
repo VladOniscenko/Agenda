@@ -6,7 +6,7 @@ class Agenda:
     def __init__(self):
         self.task_manager = TaskManager()
 
-    def create_task(self, title: str, description: str, due_date: datetime = datetime.now() + timedelta(hours=1), status: str = 'created', priority: int = 1):
+    def create_task(self, title: str, description: str, due_date: datetime = datetime.now() + timedelta(hours=1), status: str = 'not_started', priority: int = 1):
         # create a task
         task = Task(title, description, due_date, status, priority)
 

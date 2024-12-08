@@ -7,7 +7,7 @@ class Task:
     status: str
     priority: int
 
-    def __init__(self, title: str, description: str, due_date: datetime = datetime.now() + timedelta(hours=1), status: str = 'created', priority: int = 1):
+    def __init__(self, title: str, description: str, due_date: datetime = datetime.now() + timedelta(hours=1), status: str = 'not_started', priority: int = 1):
 
         self._statuses = {
             "not_started": "Not Started",
