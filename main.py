@@ -20,7 +20,7 @@ def main():
     ]
 
     inputs = {
-        1: ['title', 'description', 'due date (01-01-2002 00:00)']
+        1: ['title', 'description']
     }
 
     while True:
