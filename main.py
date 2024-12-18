@@ -1,10 +1,10 @@
-from src.agenda.agenda import Agenda  # Import the class explicitly
+from controllers.agenda_controller import AgendaController  # Import the class explicitly
 import sys
 import os
 
 
 def main():
-    agenda = Agenda()
+    agenda = AgendaController()
 
     box_w = 20
 

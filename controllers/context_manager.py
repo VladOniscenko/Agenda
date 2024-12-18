@@ -6,14 +6,18 @@ class ContextManager:
         self.__cursor = self.__connection.cursor()
         self.create_tables()
 
-    def execute(self, query: str, params: list | tuple = ()) -> bool | list:
+    def execute(self, query: str, params: list | tuple = ()) -> bool | list | int:
+        lowercase_query = query.strip().lower()
         try:
             self.__cursor.execute(query, params)
             self.__connection.commit()
 
             # If it's a SELECT query, fetch and return rows
-            if query.strip().lower().startswith("select"):
+            if lowercase_query.startswith("select"):
                 return self.__cursor.fetchall()
+
+            elif lowercase_query.startswith("insert"):
+                return self.__cursor.lastrowid
 
             return True
         except sqlite3.Error as e:  # Catch SQLite-specific errors

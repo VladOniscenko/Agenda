@@ -10,16 +10,23 @@ class AgendaController:
         self.user_id = 1
         self.tasks = []
         self.db = ContextManager()
-        self.db.create_tables()
 
-    def create_task(self, name: str, description: str, date: datetime = datetime.now(), priority: str = 1, status: str = "Pending") -> Task:
-        # todo insert task into db
-        self.db.execute(
-            'INSERT INTO tasks (name, description)'
+    def create_task(self, name: str, description: str, date: datetime = datetime.now(), priority: str = 1, status: str = "Pending") -> Task | bool:
+        # create new task in database
+        identifier = self.db.execute(
+            """
+            INSERT INTO tasks (name, description, date, priority, status)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (name, description, date, priority, status)
         )
 
-        # todo create Task instance from Task model
-        # todo return Task model
+        # if inserted new task
+        # create new Task Instance and return it
+        if identifier:
+            return Task(identifier, name, description, date, priority, status)
+
+        return False
 
     def read_task(self, task_id):
         pass
