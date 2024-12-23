@@ -8,7 +8,7 @@ class Task:
     __status: str
     __status: tuple[str]
     __STATUSES: tuple[str, ...] = ("Pending", "In Progress", "Completed", "On Hold", "Cancelled")
-    __HIDDEN: tuple[str, ...] = ()
+    __READABLE: tuple[str, ...] = ('id', 'name', 'description', 'priority', 'date', 'status')
 
     def __init__(self, name: str, description: str, date: datetime = datetime.now(), priority: str = 1, status: str = "Pending", identifier: int = None):
         self.__id = identifier
@@ -20,11 +20,11 @@ class Task:
 
     # return private attributes
     def __getattr__(self, attr):
-        private_attr = f"_{self.__class__.__name__}__{attr}"
+        protected = f"_{self.__class__.__name__}__{attr}"
 
         # check if attr isset and not in
-        if private_attr in self.__dict__ and attr not in self.__HIDDEN:
-            return self.__dict__[private_attr]
+        if attr in self.__READABLE and protected in self.__dict__:
+            return self.__dict__[protected]
         raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{attr}'")
 
     # represent instance
