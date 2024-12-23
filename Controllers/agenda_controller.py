@@ -22,20 +22,19 @@ class AgendaController:
             (name, description, date, priority, status, self.user_id)
         )
 
-        # if inserted new task
-        # create new Task Instance and return it
-        if identifier:
-            task = Task(name, description, date, priority, status, identifier=identifier)
-            self.tasks.append(task)
+        if not identifier:
+            # return false if task was not created
             return {
-                'success': True,
-                'task': task
+                'success': False,
+                'message': 'Something went wrong! Task could\'t be created'
             }
 
-        # return false if task was not created
+        # create new Task Instance and return it
+        task = Task(name, description, date, priority, status, identifier=identifier)
+        self.tasks.append(task)
         return {
-            'success': False,
-            'task': 'Something went wrong! Task could\'t be created'
+            'success': True,
+            'task': task
         }
 
     def get_task(self, task_id):
@@ -99,3 +98,6 @@ class AgendaController:
             'success': False,
             'message': 'Something went wrong!'
         }
+
+    def get_statuses(self):
+        return ('Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled')
