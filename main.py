@@ -8,11 +8,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.agenda = AgendaController(1)
-        self.setWindowTitle("Main Window")
-        self.setFixedSize(300, 200)  # Disable resizing by setting a fixed size
+        self.setWindowTitle("ToDo's list")
+        self.setFixedWidth(300)
 
         # Button to open "Create Task" window
-        self.open_task_window_button = QPushButton("Open Create Task Window")
+        self.open_task_window_button = QPushButton("+")
         self.open_task_window_button.clicked.connect(self.open_create_task_window)
 
         # Set layout
@@ -63,38 +63,6 @@ class CreateTaskWindow(QWidget):
 
         # Set layout
         self.setLayout(layout)
-        self.custom_style_sheet()
-
-    def custom_style_sheet(self):
-        # submit bg - #1E90FF
-        # submit color - black
-        # font - white
-        # actions / active color - #1E90FF
-
-        self.setStyleSheet('''
-            QWidget {
-                background-color: white;
-                color: black;
-                font: 300 13pt "Avenir";
-                font-size: 15px;
-            }
-
-            QPushButton {
-                background-color: #1E90FF;
-                border-radius: 5px;
-                padding: 7px;
-                color: white;
-            }
-
-            QPlainTextEdit, QTextEdit, QLineEdit, QComboBox {
-                border-radius: 5px;
-                border: 1px solid #1E90FF;
-                padding: 5px;
-            }
-        ''')
-
-        # Force refresh
-        self.style().polish(self)
 
     def submit_task(self):
         name = self.name_input.text()
