@@ -48,6 +48,7 @@ class CreateTaskWindow(QWidget):
         # Description input
         self.description_input = QTextEdit()
         self.description_input.setPlaceholderText("Description...")
+        self.description_input.setFixedHeight(100)
         layout.addWidget(self.description_input)
 
         # Status input
