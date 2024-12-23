@@ -1,5 +1,5 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QWidget, QComboBox
-from numpy.ma.core import empty
+from PyQt6.QtCore import QDateTime
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QWidget, QComboBox, QDateTimeEdit
 
 from Controllers.agenda_controller import AgendaController
 
@@ -8,7 +8,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.agenda = AgendaController(1)
-        self.setWindowTitle("ToDo's list")
+        self.setWindowTitle("All tasks")
         self.setFixedWidth(300)
 
         # Button to open "Create Task" window
@@ -56,6 +56,17 @@ class CreateTaskWindow(QWidget):
         self.status_combo.addItems(self.agenda.get_statuses())  # Add options to combo box from TODO_STATUSES tuple
         layout.addWidget(self.status_combo)
 
+        # Priority input
+        self.priority_combo = QComboBox()
+        self.priority_combo.addItems(self.agenda.get_priorities())  # Add options to combo box from TODO_STATUSES tuple
+        layout.addWidget(self.priority_combo)
+
+        # Datetime input
+        self.datetime_input = QDateTimeEdit()
+        self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
+        self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
+        layout.addWidget(self.datetime_input)
+
         # Submit button
         self.submit_button = QPushButton("Submit")
         self.submit_button.clicked.connect(self.submit_task)
@@ -68,13 +79,15 @@ class CreateTaskWindow(QWidget):
         name = self.name_input.text()
         description = self.description_input.toPlainText()
         selected_status = self.status_combo.currentText()
+        selected_priority = self.priority_combo.currentText()
+        date = self.datetime_input.dateTime().toPyDateTime()
 
         # check if inputs are not empty
-        if name == '' or description == '' or selected_status == '':
+        if name == '' or description == '' or selected_status == '' or selected_priority == '' or date == '':
             return
 
         # create task
-        create_response = self.agenda.add_task(name, description, status=selected_status)
+        create_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
         if not create_response['success']:
             print(create_response['message'])
             return

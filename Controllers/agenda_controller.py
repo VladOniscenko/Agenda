@@ -101,3 +101,6 @@ class AgendaController:
 
     def get_statuses(self):
         return ('Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled')
+
+    def get_priorities(self):
+        return ('Low', 'Medium', 'High', 'Critical')
