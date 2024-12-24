@@ -11,6 +11,8 @@ class MainWindow(QMainWindow):
     # todo on task click open description/update window
     # todo add delete delete button by update page
     # todo checkbox to marks as completed
+    # todo after task creation order task by date and then priority
+
     table_widget: QTableWidget
 
     def __init__(self):
