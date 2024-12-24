@@ -1,37 +1,87 @@
 from PyQt6.QtCore import QDateTime
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QLineEdit, QTextEdit, QPushButton, QWidget, QComboBox, QDateTimeEdit
+from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QHBoxLayout, QLineEdit, QTextEdit, QPushButton, QWidget, QTableWidget, QTableWidgetItem, QGridLayout, QComboBox, QDateTimeEdit
+from datetime import datetime
 
 from Controllers.agenda_controller import AgendaController
+from Models.task import Task
 
 
 class MainWindow(QMainWindow):
+    # todo create header
+    # todo on task click open description/update window
+    # todo add delete delete button by update page
+    # todo checkbox to marks as completed
+    table_widget: QTableWidget
+
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("All Tasks")
+        self.setFixedWidth(450)
         self.agenda = AgendaController(1)
-        self.setWindowTitle("All tasks")
-        self.setFixedWidth(300)
 
-        # Button to open "Create Task" window
-        self.open_task_window_button = QPushButton("+")
-        self.open_task_window_button.clicked.connect(self.open_create_task_window)
-
-        # Set layout
+        # Main layout
         main_layout = QVBoxLayout()
-        main_layout.addWidget(self.open_task_window_button)
 
+        # Add the header to the layout
+        main_layout.addLayout(self.create_header())
+
+        # Add the tasks to the layout
+        main_layout.addWidget(self.create_tasks_table())
+
+        # Set central widget
         container = QWidget()
         container.setLayout(main_layout)
         self.setCentralWidget(container)
 
+    def create_header(self):
+        """Creates the header with today's date and a button to add tasks."""
+        header_layout = QHBoxLayout()
+
+        # Today's date label
+        today_label = QLabel(f"Today: {datetime.now().strftime('%Y-%m-%d')}")
+        header_layout.addWidget(today_label)
+
+        # Add stretch to push button to the right
+        header_layout.addStretch()
+
+        # Button to open "Create Task" window
+        self.open_task_window_button = QPushButton("+")
+        self.open_task_window_button.setFixedSize(30, 30)  # Optional: fix size for aesthetics
+        self.open_task_window_button.clicked.connect(self.open_create_task_window)
+        header_layout.addWidget(self.open_task_window_button)
+
+        return header_layout
+
     def open_create_task_window(self):
-        self.task_window = CreateTaskWindow(self.agenda)
+        self.task_window = CreateTaskWindow(self)
         self.task_window.show()
+
+    def create_tasks_table(self):
+        """Creates and returns the tasks table widget."""
+        self.table_widget = QTableWidget(len(self.agenda.tasks), 4)  # Rows and columns
+        self.table_widget.setHorizontalHeaderLabels(["Name", "Description", "Priority", "Date"])
+
+        # Populate the table
+        self.update_tasks_table(self.table_widget)
+
+        return self.table_widget
+
+    def update_tasks_table(self, table_widget):
+        """Updates the task table with the latest tasks."""
+        table_widget.setRowCount(len(self.agenda.tasks))  # Update row count
+
+        for row, task in enumerate(self.agenda.tasks):
+            table_widget.setItem(row, 0, QTableWidgetItem(task.name))
+            table_widget.setItem(row, 1, QTableWidgetItem(task.description))
+            table_widget.setItem(row, 2, QTableWidgetItem(task.priority))
+            table_widget.setItem(row, 3, QTableWidgetItem(str(task.date)))
 
 
 class CreateTaskWindow(QWidget):
-    def __init__(self, agenda):
+    def __init__(self, main):
         super().__init__()
-        self.agenda = agenda
+        self.main = main
+        self.agenda = self.main.agenda
 
         self.setWindowTitle("Create Task")
         self.setFixedWidth(300)
@@ -53,12 +103,12 @@ class CreateTaskWindow(QWidget):
 
         # Status input
         self.status_combo = QComboBox()
-        self.status_combo.addItems(self.agenda.get_statuses())  # Add options to combo box from TODO_STATUSES tuple
+        self.status_combo.addItems(Task.statuses())  # Add options to combo box from TODO_STATUSES tuple
         layout.addWidget(self.status_combo)
 
         # Priority input
         self.priority_combo = QComboBox()
-        self.priority_combo.addItems(self.agenda.get_priorities())  # Add options to combo box from TODO_STATUSES tuple
+        self.priority_combo.addItems(Task.priorities())  # Add options to combo box from TODO_STATUSES tuple
         layout.addWidget(self.priority_combo)
 
         # Datetime input
@@ -95,6 +145,7 @@ class CreateTaskWindow(QWidget):
         task = create_response['task']
         print(f"Task created! id: {task.id}")
         self.close()
+        self.main.update_tasks_table(self.main.table_widget)
 
 
 if __name__ == '__main__':

@@ -12,6 +12,9 @@ class AgendaController:
         self.tasks = []
         self.db = ContextManager()
 
+        # get all task of user from database
+        self.load_tasks()
+
     def add_task(self, name: str, description: str, date: datetime = datetime.now(), priority: str = 1, status: str = "Pending") -> Task | dict:
         # create new task in database
         identifier = self.db.execute(
@@ -58,10 +61,22 @@ class AgendaController:
             'task': Task(*raw_task[:5], identifier=raw_task[5])
         }
 
-    def get_tasks(self):
+    def get_tasks(self) -> dict:
         # search for tasks in database
         raw_tasks = self.db.execute(
-            "SELECT name, description, date, priority, status, id FROM tasks WHERE user_id = ?",
+            """
+                SELECT name, description, date, priority, status, id 
+                FROM tasks 
+                WHERE user_id = ?
+                ORDER BY date DESC, 
+                         CASE priority
+                             WHEN 'Critical' THEN 1
+                             WHEN 'High' THEN 2
+                             WHEN 'Medium' THEN 3
+                             WHEN 'Low' THEN 4
+                             ELSE 4
+                         END;
+            """,
             (self.user_id, ),
         )
 
@@ -99,8 +114,12 @@ class AgendaController:
             'message': 'Something went wrong!'
         }
 
-    def get_statuses(self):
-        return ('Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled')
-
-    def get_priorities(self):
-        return ('Low', 'Medium', 'High', 'Critical')
+    def load_tasks(self):
+        """
+        Loads tasks from database
+        :return:
+        """
+        get_task_response = self.get_tasks()
+        if not get_task_response['success']:
+            return
+        self.tasks = get_task_response['tasks']

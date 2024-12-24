@@ -8,6 +8,7 @@ class Task:
     __status: str
     __status: tuple[str]
     __STATUSES: tuple[str, ...] = ("Pending", "In Progress", "Completed", "On Hold", "Cancelled")
+    __PRIORITIES: tuple[str, ...] = ('Low', 'Medium', 'High', 'Critical')
     __READABLE: tuple[str, ...] = ('id', 'name', 'description', 'priority', 'date', 'status')
 
     def __init__(self, name: str, description: str, date: datetime = datetime.now(), priority: str = 1, status: str = "Pending", identifier: int = None):
@@ -30,3 +31,11 @@ class Task:
     # represent instance
     def __repr__(self) -> str:
         return "{}({})".format(type(self).__name__, ", ".join([f"{key}={value!r}" for key, value in self.__dict__.items()]))
+
+    @classmethod
+    def statuses(cls):
+        return cls.__STATUSES
+
+    @classmethod
+    def priorities(cls):
+        return cls.__PRIORITIES
