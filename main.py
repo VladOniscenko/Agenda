@@ -16,67 +16,75 @@ class MainWindow(QMainWindow):
     table_widget: QTableWidget
 
     def __init__(self):
-        super().__init__()
-        self.setWindowTitle("All Tasks")
-        self.setFixedWidth(450)
         self.agenda = AgendaController(1)
 
-        # Main layout
-        main_layout = QVBoxLayout()
+        super().__init__()
+        self.setWindowTitle("All Tasks")
+        self.setFixedSize(400, 550)
+
+        self.container = QWidget()
+        self.main_layout = QVBoxLayout()  # Main layout
 
         # Add the header to the layout
-        main_layout.addLayout(self.create_header())
+        self.header_layout = QHBoxLayout()
+        self.create_header()
 
         # Add the tasks to the layout
-        main_layout.addWidget(self.create_tasks_table())
+        self.task_list = QVBoxLayout()
+        self.create_task_list()
 
         # Set central widget
-        container = QWidget()
-        container.setLayout(main_layout)
-        self.setCentralWidget(container)
+        self.container.setLayout(self.main_layout)
+        self.setCentralWidget(self.container)
 
     def create_header(self):
         """Creates the header with today's date and a button to add tasks."""
-        header_layout = QHBoxLayout()
 
         # Today's date label
         today_label = QLabel(f"Today: {datetime.now().strftime('%Y-%m-%d')}")
-        header_layout.addWidget(today_label)
+        self.header_layout.addWidget(today_label)
 
         # Add stretch to push button to the right
-        header_layout.addStretch()
+        self.header_layout.addStretch()
 
         # Button to open "Create Task" window
         self.open_task_window_button = QPushButton("+")
         self.open_task_window_button.setFixedSize(30, 30)  # Optional: fix size for aesthetics
         self.open_task_window_button.clicked.connect(self.open_create_task_window)
-        header_layout.addWidget(self.open_task_window_button)
+        self.header_layout.addWidget(self.open_task_window_button)
 
-        return header_layout
+        self.main_layout.addLayout(self.header_layout)
 
     def open_create_task_window(self):
         self.task_window = CreateTaskWindow(self)
         self.task_window.show()
 
-    def create_tasks_table(self):
+    def create_task_list(self):
+        # todo create vertical layout
+        # todo add tasks to layout
+
+
+
         """Creates and returns the tasks table widget."""
-        self.table_widget = QTableWidget(len(self.agenda.tasks), 4)  # Rows and columns
-        self.table_widget.setHorizontalHeaderLabels(["Name", "Description", "Priority", "Date"])
+        # self.table_widget = QTableWidget(len(self.agenda.tasks), 4)  # Rows and columns
+        # self.table_widget.setHorizontalHeaderLabels(["Name", "Description", "Priority", "Date"])
 
         # Populate the table
-        self.update_tasks_table(self.table_widget)
-
-        return self.table_widget
+        # self.update_tasks_table(self.table_widget)
+        # return self.table_widget
 
     def update_tasks_table(self, table_widget):
-        """Updates the task table with the latest tasks."""
-        table_widget.setRowCount(len(self.agenda.tasks))  # Update row count
+        # todo create label with task name and date
+        # todo add prio colors
 
-        for row, task in enumerate(self.agenda.tasks):
-            table_widget.setItem(row, 0, QTableWidgetItem(task.name))
-            table_widget.setItem(row, 1, QTableWidgetItem(task.description))
-            table_widget.setItem(row, 2, QTableWidgetItem(task.priority))
-            table_widget.setItem(row, 3, QTableWidgetItem(str(task.date)))
+        """Updates the task table with the latest tasks."""
+        # table_widget.setRowCount(len(self.agenda.tasks))  # Update row count
+        #
+        # for row, task in enumerate(self.agenda.tasks):
+        #     table_widget.setItem(row, 0, QTableWidgetItem(task.name))
+        #     table_widget.setItem(row, 1, QTableWidgetItem(task.description))
+        #     table_widget.setItem(row, 2, QTableWidgetItem(task.priority))
+        #     table_widget.setItem(row, 3, QTableWidgetItem(str(task.date)))
 
 
 class CreateTaskWindow(QWidget):
