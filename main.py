@@ -1,90 +1,79 @@
-from PyQt6.QtCore import QDateTime
-from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QLabel, QHBoxLayout, QLineEdit, QTextEdit, QPushButton, QWidget, QTableWidget, QTableWidgetItem, QGridLayout, QComboBox, QDateTimeEdit
+import os
+import sys
 from datetime import datetime
+
+from PySide6.QtCore import QDateTime
+from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
 
 
 class MainWindow(QMainWindow):
-    # todo create header
-    # todo on task click open description/update window
-    # todo add delete delete button by update page
-    # todo checkbox to marks as completed
-    # todo after task creation order task by date and then priority
-
-    table_widget: QTableWidget
-
     def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Task Manager")
         self.agenda = AgendaController(1)
 
-        super().__init__()
-        self.setWindowTitle("All Tasks")
-        self.setFixedSize(400, 550)
+        # Create the main widget and layout
+        self.main_widget = QWidget()
+        self.main_widget.setFixedSize(400, 550)
+        self.main_layout = QVBoxLayout(self.main_widget)
 
-        self.container = QWidget()
-        self.main_layout = QVBoxLayout()  # Main layout
-
-        # Add the header to the layout
-        self.header_layout = QHBoxLayout()
         self.create_header()
+        self.set_tasks_list()
 
-        # Add the tasks to the layout
-        self.task_list = QVBoxLayout()
-        self.create_task_list()
+        # Set the main widget as the central widget of the main window
+        self.setCentralWidget(self.main_widget)
+        self.show()
 
-        # Set central widget
-        self.container.setLayout(self.main_layout)
-        self.setCentralWidget(self.container)
+    def set_tasks_list(self):
+        # Create the scrollable container
+        scroll_area = QScrollArea()
+
+        # Create a widget to hold items inside the scrollable container
+        scrollable_content = QWidget()
+        scrollable_layout = QVBoxLayout(scrollable_content)
+
+        # Add items to the scrollable container
+        for num, task in enumerate(self.agenda.tasks):
+            # todo add date
+            # todo add checkbox
+            # todo add prio bg-color
+
+            label = QLabel(f"{task.name}")
+            scrollable_layout.addWidget(label)
+
+        # Set the scrollable content inside the scroll area
+        scroll_area.setWidget(scrollable_content)
+
+        # Add the scrollable container to the main layout
+        self.main_layout.addWidget(scroll_area)
 
     def create_header(self):
         """Creates the header with today's date and a button to add tasks."""
+        task_list = QVBoxLayout()
+        header_layout = QHBoxLayout()
 
         # Today's date label
         today_label = QLabel(f"Today: {datetime.now().strftime('%Y-%m-%d')}")
-        self.header_layout.addWidget(today_label)
+        header_layout.addWidget(today_label)
 
         # Add stretch to push button to the right
-        self.header_layout.addStretch()
+        header_layout.addStretch()
 
         # Button to open "Create Task" window
-        self.open_task_window_button = QPushButton("+")
-        self.open_task_window_button.setFixedSize(30, 30)  # Optional: fix size for aesthetics
-        self.open_task_window_button.clicked.connect(self.open_create_task_window)
-        self.header_layout.addWidget(self.open_task_window_button)
+        open_task_window_button = QPushButton("+")
+        open_task_window_button.setFixedSize(30, 30)  # Optional: fix size for aesthetics
+        open_task_window_button.clicked.connect(self.open_create_task_window)
+        header_layout.addWidget(open_task_window_button)
 
-        self.main_layout.addLayout(self.header_layout)
+        self.main_layout.addLayout(header_layout)
 
     def open_create_task_window(self):
         self.task_window = CreateTaskWindow(self)
         self.task_window.show()
-
-    def create_task_list(self):
-        # todo create vertical layout
-        # todo add tasks to layout
-
-
-
-        """Creates and returns the tasks table widget."""
-        # self.table_widget = QTableWidget(len(self.agenda.tasks), 4)  # Rows and columns
-        # self.table_widget.setHorizontalHeaderLabels(["Name", "Description", "Priority", "Date"])
-
-        # Populate the table
-        # self.update_tasks_table(self.table_widget)
-        # return self.table_widget
-
-    def update_tasks_table(self, table_widget):
-        # todo create label with task name and date
-        # todo add prio colors
-
-        """Updates the task table with the latest tasks."""
-        # table_widget.setRowCount(len(self.agenda.tasks))  # Update row count
-        #
-        # for row, task in enumerate(self.agenda.tasks):
-        #     table_widget.setItem(row, 0, QTableWidgetItem(task.name))
-        #     table_widget.setItem(row, 1, QTableWidgetItem(task.description))
-        #     table_widget.setItem(row, 2, QTableWidgetItem(task.priority))
-        #     table_widget.setItem(row, 3, QTableWidgetItem(str(task.date)))
 
 
 class CreateTaskWindow(QWidget):
@@ -159,7 +148,6 @@ class CreateTaskWindow(QWidget):
 
 
 if __name__ == '__main__':
-    app = QApplication([])
-    main_window = MainWindow()
-    main_window.show()
+    app = QApplication(sys.argv)
+    window = MainWindow()
     app.exec()
