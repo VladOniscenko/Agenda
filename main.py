@@ -4,7 +4,7 @@ from datetime import datetime
 
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
@@ -16,25 +16,34 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Task Manager")
         self.agenda = AgendaController(1)
 
-        # Create the main widget and layout
+        # creating main container main_widget
         self.main_widget = QWidget()
-        self.main_widget.setFixedSize(400, 550)
+
+        # add styling to our main widget
+        self.main_widget.setStyleSheet("""
+        """)
+
+        # create main layout positioning (vertical alignment)
+        # add our main widget to our layout
         self.main_layout = QVBoxLayout(self.main_widget)
 
+        # create header and add to our layout
         self.create_header()
-        self.set_tasks_list()
 
-        # Set the main widget as the central widget of the main window
+        # # Set the main container/widget as the central widget
         self.setCentralWidget(self.main_widget)
+
+        # show / open our window
         self.show()
 
     def set_tasks_list(self):
         # Create the scrollable container
         scroll_area = QScrollArea()
 
-        # Create a widget to hold items inside the scrollable container
+        # # Create a widget to hold items inside the scrollable container
         scrollable_content = QWidget()
         scrollable_layout = QVBoxLayout(scrollable_content)
+        scrollable_layout.setContentsMargins(0, 0, 0, 0)
 
         # Add items to the scrollable container
         for num, task in enumerate(self.agenda.tasks):
@@ -42,8 +51,12 @@ class MainWindow(QMainWindow):
             # todo add checkbox
             # todo add prio bg-color
 
-            label = QLabel(f"{task.name}")
-            scrollable_layout.addWidget(label)
+            container = QWidget()
+            container.setStyleSheet("background-color: green; height: 50px;")
+            layout = QHBoxLayout(container)
+            checkbox = QCheckBox(f"{task.name}", self)
+            layout.addWidget(checkbox)
+            scrollable_layout.addWidget(container)
 
         # Set the scrollable content inside the scroll area
         scroll_area.setWidget(scrollable_content)
@@ -52,24 +65,29 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(scroll_area)
 
     def create_header(self):
-        """Creates the header with today's date and a button to add tasks."""
-        task_list = QVBoxLayout()
-        header_layout = QHBoxLayout()
+        # create header layout type (horizontal layout)
+        layout = QHBoxLayout()
 
-        # Today's date label
-        today_label = QLabel(f"Today: {datetime.now().strftime('%Y-%m-%d')}")
-        header_layout.addWidget(today_label)
+        # create a label with text inside
+        current_date_label = QLabel(f'Today: {datetime.now().strftime('%Y-%m-%d')}')
 
-        # Add stretch to push button to the right
-        header_layout.addStretch()
+        # add our label with text to our layout
+        layout.addWidget(current_date_label)
+
+        # take all extra space for next widgets
+        layout.addStretch()
 
         # Button to open "Create Task" window
-        open_task_window_button = QPushButton("+")
-        open_task_window_button.setFixedSize(30, 30)  # Optional: fix size for aesthetics
-        open_task_window_button.clicked.connect(self.open_create_task_window)
-        header_layout.addWidget(open_task_window_button)
+        create_task_btn = QPushButton("+")  # create button with + as text
+        create_task_btn.setFixedSize(30, 30)  # set button size
+        create_task_btn.clicked.connect(self.open_create_task_window)  # set event function
 
-        self.main_layout.addLayout(header_layout)
+        # add button to header layout
+        layout.addWidget(create_task_btn)
+
+        # add our created header layout to main layout
+        self.main_layout.addLayout(layout)
+
 
     def open_create_task_window(self):
         self.task_window = CreateTaskWindow(self)
@@ -149,5 +167,9 @@ class CreateTaskWindow(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
     window = MainWindow()
+    window.setFixedSize(400, 550)
+    window.move(0, 0)
+
     app.exec()
