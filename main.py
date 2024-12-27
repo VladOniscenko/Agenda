@@ -1,10 +1,11 @@
 import os
 import sys
 from datetime import datetime
+from functools import partial
 
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSizePolicy
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
@@ -30,39 +31,13 @@ class MainWindow(QMainWindow):
         # create header and add to our layout
         self.create_header()
 
+        self.create_task_list()
+
         # # Set the main container/widget as the central widget
         self.setCentralWidget(self.main_widget)
 
         # show / open our window
         self.show()
-
-    def set_tasks_list(self):
-        # Create the scrollable container
-        scroll_area = QScrollArea()
-
-        # # Create a widget to hold items inside the scrollable container
-        scrollable_content = QWidget()
-        scrollable_layout = QVBoxLayout(scrollable_content)
-        scrollable_layout.setContentsMargins(0, 0, 0, 0)
-
-        # Add items to the scrollable container
-        for num, task in enumerate(self.agenda.tasks):
-            # todo add date
-            # todo add checkbox
-            # todo add prio bg-color
-
-            container = QWidget()
-            container.setStyleSheet("background-color: green; height: 50px;")
-            layout = QHBoxLayout(container)
-            checkbox = QCheckBox(f"{task.name}", self)
-            layout.addWidget(checkbox)
-            scrollable_layout.addWidget(container)
-
-        # Set the scrollable content inside the scroll area
-        scroll_area.setWidget(scrollable_content)
-
-        # Add the scrollable container to the main layout
-        self.main_layout.addWidget(scroll_area)
 
     def create_header(self):
         # create header layout type (horizontal layout)
@@ -88,10 +63,100 @@ class MainWindow(QMainWindow):
         # add our created header layout to main layout
         self.main_layout.addLayout(layout)
 
+    def open_task_info(self, event, task: Task):
+        print(task)
+
+    def mark_complete(self, event, task: Task):
+        print(f"Task marked as complete: {task.id}")
+
+    def create_task_list(self, all = False):
+        # Create scrollable area
+        scroll_area = QScrollArea()
+
+        # Create container where content will be placed
+        scrollable_content = QWidget()
+        scrollable_content.setContentsMargins(0, 0, 0, 0)  # Set margins
+
+        # Set layout to our container
+        layout = QVBoxLayout(scrollable_content)
+        layout.setContentsMargins(0, 0, 0, 0)  # Set margins
+        layout.setSpacing(5)  # Optional: Add spacing between items
+
+        # Add items to the scrollable container layout
+        for num, task in enumerate(self.agenda.tasks):
+            if not all and task.status in ('Cancelled', 'Completed'):
+                continue
+
+            # Connect to the custom click handler
+
+            # Create item container
+            item_container = QWidget()
+            item_container.setObjectName("itemContainer")  # Set a unique object name
+
+            # get task colors
+            item_bg_color, item_text_color = task.status_color
+
+            item_container.setStyleSheet(f"""
+                QWidget#itemContainer {{
+                    background-color: {item_bg_color};
+                    color: {item_text_color};
+                }}
+                
+                QWidget#itemContainer:hover {{
+                    background-color: rgba(255, 255, 255, 0.15);
+                }}
+                
+                QCheckBox {{
+                    padding-left: 15px;
+                    padding-right: 15px;
+                }}
+
+                QCheckBox::indicator {{
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 11px;
+                    border: 1px solid gray;
+                    background-color: rgba(255, 255, 255, 0.1);
+                }}
+
+                QCheckBox::indicator:unchecked {{
+                    background-color: rgba(255, 255, 255, 0.1);
+                }}
+            """)
+
+            # Set container layout
+            item_layout = QHBoxLayout(item_container)
+            item_layout.setContentsMargins(0, 0, 0, 0)  # Remove inner margins
+
+            # Add our item info to layout
+            checkbox = QCheckBox()
+
+            item_layout.addWidget(checkbox)
+
+            text = QLabel(f'{task.name}')
+            item_layout.addWidget(text)
+
+            # Add stretch to push items to fill space
+            item_layout.addStretch()
+
+            # Add the item container to the scrollable layout
+            layout.addWidget(item_container)
+
+            # Add event listeners using default argument for task to bind the current task to the lambda
+            item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
+            checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
+
+        # Add our created content to the scrollable area
+        scroll_area.setWidget(scrollable_content)
+        scroll_area.setWidgetResizable(True)  # Ensure the widget resizes with the scroll area
+
+        # Add our scroll area to main content
+        self.main_layout.addWidget(scroll_area)
 
     def open_create_task_window(self):
         self.task_window = CreateTaskWindow(self)
         self.task_window.show()
+
 
 
 class CreateTaskWindow(QWidget):
@@ -169,7 +234,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     window = MainWindow()
-    window.setFixedSize(400, 550)
+    window.setFixedSize(350, 500)
     window.move(0, 0)
 
     app.exec()
