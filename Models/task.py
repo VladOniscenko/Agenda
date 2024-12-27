@@ -39,3 +39,12 @@ class Task:
     @classmethod
     def priorities(cls):
         return cls.__PRIORITIES
+
+    @property
+    def status_color(self):
+        colors = {
+            "Pending": ("rgba(255, 255, 255, 0.1)", "#5D4037"),
+            "Completed": ("rgba(200, 230, 201, 0.3)", "#2C6B2F"),
+            "Cancelled": ("rgba(255, 205, 210, 0.3)", "#9A1F1F"),
+        }
+        return colors.get(self.__status, ("rgba(255, 255, 255, 0.1)", "#5D4037"))
