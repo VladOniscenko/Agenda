@@ -123,3 +123,24 @@ class AgendaController:
         if not get_task_response['success']:
             return
         self.tasks = get_task_response['tasks']
+
+    def set_as_completed(self, identifier: int) -> dict:
+        update = self.db.execute(
+            """
+                UPDATE tasks
+                SET status = 'Completed'
+                WHERE id = ?
+            """,
+            (identifier, )
+        )
+
+        # check if updated
+        if update:
+            return {
+                'success': True,
+            }
+
+        return {
+            'success': False,
+            'message': 'Something went wrong!'
+        }
