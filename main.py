@@ -91,18 +91,15 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)  # Set margins
         layout.setSpacing(5)  # Optional: Add spacing between items
 
-        if len(self.agenda.tasks) < 1:
-            no_items_label = QLabel('No items found')
-            no_items_label.setStyleSheet("""
-                color: crimson;
-                padding: 20px;
-            """)
-            layout.addWidget(no_items_label)
+        # showed tasks count
+        showed_tasks_count = 0
 
         # Add items to the scrollable container layout
         for num, task in enumerate(self.agenda.tasks):
             if not all and task.status in ('Cancelled', 'Completed'):
                 continue
+
+            showed_tasks_count += 1
 
             # Create item container
             item_container = QWidget()
@@ -165,6 +162,14 @@ class MainWindow(QMainWindow):
             # Add event listeners using default argument for task to bind the current task to the lambda
             item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
             checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
+
+        if showed_tasks_count == 0:
+            no_items_label = QLabel('No items found')
+            no_items_label.setStyleSheet("""
+                color: crimson;
+                padding: 20px;
+            """)
+            layout.addWidget(no_items_label)
 
         # dont set spaces between items
         layout.addStretch()
