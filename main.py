@@ -12,6 +12,8 @@ from Models.task import Task
 
 
 class MainWindow(QMainWindow):
+    scroll_area: QScrollArea
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Task Manager")
@@ -71,7 +73,8 @@ class MainWindow(QMainWindow):
 
     def create_task_list(self, all = False):
         # Create scrollable area
-        scroll_area = QScrollArea()
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setObjectName('task_list')
 
         # Create container where content will be placed
         scrollable_content = QWidget()
@@ -82,16 +85,23 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)  # Set margins
         layout.setSpacing(5)  # Optional: Add spacing between items
 
+        if len(self.agenda.tasks) < 1:
+            no_items_label = QLabel('No items found')
+            no_items_label.setStyleSheet("""
+                color: crimson;
+                padding: 20px;
+            """)
+            layout.addWidget(no_items_label)
+
         # Add items to the scrollable container layout
         for num, task in enumerate(self.agenda.tasks):
             if not all and task.status in ('Cancelled', 'Completed'):
                 continue
 
-            # Connect to the custom click handler
-
             # Create item container
             item_container = QWidget()
             item_container.setObjectName("itemContainer")  # Set a unique object name
+            item_container.setFixedHeight(50)
 
             # get task colors
             item_bg_color, item_text_color = task.status_color
@@ -146,18 +156,23 @@ class MainWindow(QMainWindow):
             item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
             checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
 
+        # dont set spaces between items
+        layout.addStretch()
+
         # Add our created content to the scrollable area
-        scroll_area.setWidget(scrollable_content)
-        scroll_area.setWidgetResizable(True)  # Ensure the widget resizes with the scroll area
+        self.scroll_area.setWidget(scrollable_content)
+        self.scroll_area.setWidgetResizable(True)  # Ensure the widget resizes with the scroll area
 
         # Add our scroll area to main content
-        self.main_layout.addWidget(scroll_area)
+        self.main_layout.addWidget(self.scroll_area)
 
     def open_create_task_window(self):
         self.task_window = CreateTaskWindow(self)
         self.task_window.show()
 
-
+    def update_tasks_list(self):
+        self.scroll_area.deleteLater()
+        self.create_task_list()
 
 class CreateTaskWindow(QWidget):
     def __init__(self, main):
@@ -212,7 +227,7 @@ class CreateTaskWindow(QWidget):
         description = self.description_input.toPlainText()
         selected_status = self.status_combo.currentText()
         selected_priority = self.priority_combo.currentText()
-        date = self.datetime_input.dateTime().toPyDateTime()
+        date = self.datetime_input.dateTime().toPython()
 
         # check if inputs are not empty
         if name == '' or description == '' or selected_status == '' or selected_priority == '' or date == '':
@@ -227,7 +242,7 @@ class CreateTaskWindow(QWidget):
         task = create_response['task']
         print(f"Task created! id: {task.id}")
         self.close()
-        self.main.update_tasks_table(self.main.table_widget)
+        self.main.update_tasks_list()
 
 
 if __name__ == '__main__':
