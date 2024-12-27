@@ -69,7 +69,13 @@ class MainWindow(QMainWindow):
         print(task)
 
     def mark_complete(self, event, task: Task):
-        print(f"Task marked as complete: {task.id}")
+        update = self.agenda.set_as_completed(task.id)
+        if update['success']:
+            print(f"Task marked as complete: {task.id}")
+            self.agenda.load_tasks()
+            self.update_tasks_list()
+        else:
+            print(f"{update['message']}")
 
     def create_task_list(self, all = False):
         # Create scrollable area
@@ -131,6 +137,10 @@ class MainWindow(QMainWindow):
 
                 QCheckBox::indicator:unchecked {{
                     background-color: rgba(255, 255, 255, 0.1);
+                }}                
+                
+                QCheckBox::indicator:hover {{
+                    background-color: rgba(0, 255, 0, 0.5);
                 }}
             """)
 
