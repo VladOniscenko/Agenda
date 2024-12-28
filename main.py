@@ -93,7 +93,6 @@ class MainWindow(QMainWindow):
         update = self.agenda.set_as_completed(task.id)
         if update['success']:
             print(f"Task marked as complete: {task.id}")
-            task.set_status('Completed')
             self.update_tasks_list()
         else:
             print(f"{update['message']}")
@@ -132,6 +131,7 @@ class MainWindow(QMainWindow):
             # Create item container
             item_container = QWidget()
             item_container.setObjectName("itemContainer")  # Set a unique object name
+            item_container.setContentsMargins(15, 0, 0, 0)
             item_container.setFixedHeight(50)
 
             # get task colors
@@ -148,7 +148,6 @@ class MainWindow(QMainWindow):
                 }}
                 
                 QCheckBox {{
-                    padding-left: 15px;
                     padding-right: 15px;
                 }}
     
@@ -173,10 +172,11 @@ class MainWindow(QMainWindow):
             item_layout = QHBoxLayout(item_container)
             item_layout.setContentsMargins(0, 0, 0, 0)  # Remove inner margins
 
-            # Add our item info to layout
-            checkbox = QCheckBox()
-
-            item_layout.addWidget(checkbox)
+            if task.status != 'Completed':
+                # Add our item info to layout
+                checkbox = QCheckBox()
+                item_layout.addWidget(checkbox)
+                checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
 
             text = QLabel(f'{task.name}')
             item_layout.addWidget(text)
@@ -187,9 +187,8 @@ class MainWindow(QMainWindow):
             # Add the item container to the scrollable layout
             layout.addWidget(item_container)
 
-            # Add event listeners using default argument for task to bind the current task to the lambda
+            # Add event listeners
             item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
-            checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
 
         if showed_tasks_count == 0:
             no_items_label = QLabel('No items found')
