@@ -74,7 +74,7 @@ class AgendaController:
 
         # Append sorting logic
         query += """
-            ORDER BY date DESC,
+            ORDER BY date,
                      CASE priority
                          WHEN 'Critical' THEN 1
                          WHEN 'High' THEN 2
