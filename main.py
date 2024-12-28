@@ -1,6 +1,6 @@
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import partial
 
 from PySide6.QtCore import QDateTime
@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
             # Create item container
             item_container = QWidget()
             item_container.setObjectName("itemContainer")  # Set a unique object name
-            item_container.setContentsMargins(15, 0, 0, 0)
+            item_container.setContentsMargins(15, 0, 15, 0)
             item_container.setFixedHeight(50)
 
             # get task colors
@@ -178,11 +178,48 @@ class MainWindow(QMainWindow):
                 item_layout.addWidget(checkbox)
                 checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
 
-            text = QLabel(f'{task.name}')
+            task_name = task.name
+            if len(task.name) > 25:
+                task_name = task.name[:25] + '...'
+
+            text = QLabel(f'{task_name}')
             item_layout.addWidget(text)
 
             # Add stretch to push items to fill space
             item_layout.addStretch()
+
+            # Convert task.date string to QDateTime
+            try:
+                task_date = datetime.strptime(task.date, "%Y-%m-%d %H:%M:%S.%f")
+            except ValueError:
+                task_date = datetime.strptime(task.date, "%Y-%m-%d %H:%M:%S")
+
+            current_date = datetime.now()
+
+            # Initialize the label text
+            time_label_bg, time_label_color = task.status_color
+
+
+            # Compare the task date with the current date
+            if task_date.date() == current_date.date():
+                time_label_text = 'Today'
+            elif task_date.date() == (current_date + timedelta(days=1)).date():
+                time_label_text = 'Tomorrow'
+            elif task_date.date() < current_date.date():
+                time_label_text = 'Passed'
+                time_label_color = 'red'
+            else:
+                time_label_text = task_date.strftime('%d-%m-%Y')
+
+            time_label = QLabel(time_label_text)
+            time_label.setObjectName('task_time_label')
+            time_label.setStyleSheet(f"""
+                QLabel#task_time_label {{
+                    color: {time_label_color};
+                }}
+            """)
+
+            item_layout.addWidget(time_label)
 
             # Add the item container to the scrollable layout
             layout.addWidget(item_container)
