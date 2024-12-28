@@ -19,6 +19,9 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Task Manager")
         self.agenda = AgendaController(1)
 
+        get_tasks_response = self.agenda.get_tasks()
+        self.tasks = get_tasks_response['tasks'] if get_tasks_response['success'] else []
+
         # creating main container main_widget
         self.main_widget = QWidget()
 
@@ -72,7 +75,7 @@ class MainWindow(QMainWindow):
         update = self.agenda.set_as_completed(task.id)
         if update['success']:
             print(f"Task marked as complete: {task.id}")
-            self.agenda.load_tasks()
+            task.set_status('Completed')
             self.update_tasks_list()
         else:
             print(f"{update['message']}")
@@ -95,7 +98,7 @@ class MainWindow(QMainWindow):
         showed_tasks_count = 0
 
         # Add items to the scrollable container layout
-        for num, task in enumerate(self.agenda.tasks):
+        for num, task in enumerate(self.tasks):
             if not all and task.status in ('Cancelled', 'Completed'):
                 continue
 
@@ -123,7 +126,7 @@ class MainWindow(QMainWindow):
                     padding-left: 15px;
                     padding-right: 15px;
                 }}
-
+    
                 QCheckBox::indicator {{
                     width: 20px;
                     height: 20px;
@@ -131,7 +134,7 @@ class MainWindow(QMainWindow):
                     border: 1px solid gray;
                     background-color: rgba(255, 255, 255, 0.1);
                 }}
-
+    
                 QCheckBox::indicator:unchecked {{
                     background-color: rgba(255, 255, 255, 0.1);
                 }}                
@@ -245,7 +248,7 @@ class CreateTaskWindow(QWidget):
         date = self.datetime_input.dateTime().toPython()
 
         # check if inputs are not empty
-        if name == '' or description == '' or selected_status == '' or selected_priority == '' or date == '':
+        if name == '' or selected_status == '' or selected_priority == '' or date == '':
             return
 
         # create task
@@ -257,6 +260,8 @@ class CreateTaskWindow(QWidget):
         task = create_response['task']
         print(f"Task created! id: {task.id}")
         self.close()
+
+        self.main.tasks.append(task)
         self.main.update_tasks_list()
 
 

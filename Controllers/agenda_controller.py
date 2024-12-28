@@ -9,11 +9,8 @@ class AgendaController:
     user_id: int
     def __init__(self, user_id: int):
         self.user_id = user_id
-        self.tasks = []
         self.db = ContextManager()
 
-        # get all task of user from database
-        self.load_tasks()
 
     def add_task(self, name: str, description: str, date: datetime = datetime.now(), priority: str = 1, status: str = "Pending") -> Task | dict:
         # create new task in database
@@ -33,11 +30,9 @@ class AgendaController:
             }
 
         # create new Task Instance and return it
-        task = Task(name, description, date, priority, status, identifier=identifier)
-        self.tasks.append(task)
         return {
             'success': True,
-            'task': task
+            'task': Task(name, description, date, priority, status, identifier=identifier)
         }
 
     def get_task(self, task_id):
@@ -61,7 +56,7 @@ class AgendaController:
             'task': Task(*raw_task[:5], identifier=raw_task[5])
         }
 
-    def get_tasks(self) -> dict:
+    def get_tasks(self, date: str|None = None) -> dict:
         # search for tasks in database
         raw_tasks = self.db.execute(
             """
@@ -113,16 +108,6 @@ class AgendaController:
             'success': False,
             'message': 'Something went wrong!'
         }
-
-    def load_tasks(self):
-        """
-        Loads tasks from database
-        :return:
-        """
-        get_task_response = self.get_tasks()
-        if not get_task_response['success']:
-            return
-        self.tasks = get_task_response['tasks']
 
     def set_as_completed(self, identifier: int) -> dict:
         update = self.db.execute(

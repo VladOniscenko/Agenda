@@ -48,3 +48,9 @@ class Task:
             "Cancelled": ("rgba(255, 205, 210, 0.3)", "#9A1F1F"),
         }
         return colors.get(self.__status, ("rgba(255, 255, 255, 0.1)", "#5D4037"))
+
+    def set_status(self, status: str):
+        if status in self.__STATUSES:
+            self.__status = status
+        else:
+            raise ValueError("Unexpected status")
