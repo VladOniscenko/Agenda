@@ -14,6 +14,8 @@ from Models.task import Task
 class MainWindow(QMainWindow):
     scroll_area: QScrollArea
     calendar: None | QDateTimeEdit
+    show_hidden_tasks: QCheckBox
+    show_all: QCheckBox
 
     def __init__(self):
         super().__init__()
@@ -49,13 +51,26 @@ class MainWindow(QMainWindow):
         # create header layout type (horizontal layout)
         layout = QHBoxLayout()
 
+        # calendar select box
         self.calendar = QDateTimeEdit(self.date)
         self.calendar.setDisplayFormat("dd-MM-yyyy")
         self.calendar.setCalendarPopup(True)
         self.calendar.dateChanged.connect(self.change_date)
 
+        self.show_hidden_tasks = QCheckBox('Show hidden')
+        self.show_hidden_tasks.clicked.connect(self.update_tasks_list)
+
+        self.show_all = QCheckBox('Show all dates')
+        self.show_all.clicked.connect(self.update_tasks_list)
+
+        # Create a vertical layout for checkboxes
+        checkbox_layout = QVBoxLayout()
+        checkbox_layout.addWidget(self.show_hidden_tasks)
+        checkbox_layout.addWidget(self.show_all)
+
         # add our calendar to our layout
         layout.addWidget(self.calendar)
+        layout.addLayout(checkbox_layout)
 
         # take all extra space for next widgets
         layout.addStretch()
@@ -83,7 +98,7 @@ class MainWindow(QMainWindow):
         else:
             print(f"{update['message']}")
 
-    def create_task_list(self, all = False):
+    def create_task_list(self):
         # Create scrollable area
         self.scroll_area = QScrollArea()
         self.scroll_area.setObjectName('task_list')
@@ -100,12 +115,16 @@ class MainWindow(QMainWindow):
         # showed tasks count
         showed_tasks_count = 0
 
-        get_tasks_response = self.agenda.get_tasks(self.date.toString('yyyy-MM-dd'))
+        if self.show_all.isChecked():
+            get_tasks_response = self.agenda.get_tasks()
+        else:
+            get_tasks_response = self.agenda.get_tasks(self.date.toString('yyyy-MM-dd'))
+
         self.tasks = get_tasks_response['tasks'] if get_tasks_response['success'] else []
 
         # Add items to the scrollable container layout
         for num, task in enumerate(self.tasks):
-            if not all and task.status in ('Cancelled', 'Completed'):
+            if not self.show_hidden_tasks.isChecked() and task.status in ('Cancelled', 'Completed'):
                 continue
 
             showed_tasks_count += 1
