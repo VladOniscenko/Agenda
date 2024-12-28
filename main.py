@@ -5,7 +5,7 @@ from functools import partial
 
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSizePolicy
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSizePolicy, QDateTimeEdit
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
@@ -13,14 +13,15 @@ from Models.task import Task
 
 class MainWindow(QMainWindow):
     scroll_area: QScrollArea
+    calendar: None | QDateTimeEdit
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Task Manager")
         self.agenda = AgendaController(1)
 
-        get_tasks_response = self.agenda.get_tasks()
-        self.tasks = get_tasks_response['tasks'] if get_tasks_response['success'] else []
+        self.date = QDateTime.currentDateTime()
+        self.tasks = []
 
         # creating main container main_widget
         self.main_widget = QWidget()
@@ -48,11 +49,13 @@ class MainWindow(QMainWindow):
         # create header layout type (horizontal layout)
         layout = QHBoxLayout()
 
-        # create a label with text inside
-        current_date_label = QLabel(f'Today: {datetime.now().strftime('%Y-%m-%d')}')
+        self.calendar = QDateTimeEdit(self.date)
+        self.calendar.setDisplayFormat("dd-MM-yyyy")
+        self.calendar.setCalendarPopup(True)
+        self.calendar.dateChanged.connect(self.change_date)
 
-        # add our label with text to our layout
-        layout.addWidget(current_date_label)
+        # add our calendar to our layout
+        layout.addWidget(self.calendar)
 
         # take all extra space for next widgets
         layout.addStretch()
@@ -96,6 +99,9 @@ class MainWindow(QMainWindow):
 
         # showed tasks count
         showed_tasks_count = 0
+
+        get_tasks_response = self.agenda.get_tasks(self.date.toString('yyyy-MM-dd'))
+        self.tasks = get_tasks_response['tasks'] if get_tasks_response['success'] else []
 
         # Add items to the scrollable container layout
         for num, task in enumerate(self.tasks):
@@ -191,6 +197,14 @@ class MainWindow(QMainWindow):
     def update_tasks_list(self):
         self.scroll_area.deleteLater()
         self.create_task_list()
+
+    def change_date(self, new_date):
+        # Handle the selected date
+        print(f"Selected date: {new_date.toString('dd-MM-yyyy')}")
+
+        self.date = new_date
+        self.update_tasks_list()
+
 
 class CreateTaskWindow(QWidget):
     def __init__(self, main):

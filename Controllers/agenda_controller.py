@@ -57,23 +57,35 @@ class AgendaController:
         }
 
     def get_tasks(self, date: str|None = None) -> dict:
+        # Base query
+        query = """
+            SELECT name, description, date, priority, status, id
+            FROM tasks
+            WHERE user_id = ?
+        """
+        params = [self.user_id]
+
+        # Add condition for filtering by date if 'date' is provided
+        if date:
+            # Convert the input date from 'd-m-Y' format to 'YYYY-MM-DD'
+            formatted_date = datetime.strptime(date, "%Y-%m-%d").strftime("%Y-%m-%d")
+            query += " AND DATE(date) = ?"
+            params.append(formatted_date)
+
+        # Append sorting logic
+        query += """
+            ORDER BY date DESC,
+                     CASE priority
+                         WHEN 'Critical' THEN 1
+                         WHEN 'High' THEN 2
+                         WHEN 'Medium' THEN 3
+                         WHEN 'Low' THEN 4
+                         ELSE 4
+                     END;
+        """
+
         # search for tasks in database
-        raw_tasks = self.db.execute(
-            """
-                SELECT name, description, date, priority, status, id 
-                FROM tasks 
-                WHERE user_id = ?
-                ORDER BY date DESC, 
-                         CASE priority
-                             WHEN 'Critical' THEN 1
-                             WHEN 'High' THEN 2
-                             WHEN 'Medium' THEN 3
-                             WHEN 'Low' THEN 4
-                             ELSE 4
-                         END;
-            """,
-            (self.user_id, ),
-        )
+        raw_tasks = self.db.execute(query, params)
 
         # check if tasks were found
         if not raw_tasks:
