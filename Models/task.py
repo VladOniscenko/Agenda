@@ -43,11 +43,11 @@ class Task:
     @property
     def status_color(self):
         colors = {
-            "Pending": ("rgba(255, 255, 255, 0.1)", "#5D4037"),
-            "Completed": ("rgba(200, 230, 201, 0.3)", "#2C6B2F"),
-            "Cancelled": ("rgba(255, 205, 210, 0.3)", "#9A1F1F"),
+            "Pending": ("rgba(255, 255, 255, 0.1)", "white"),
+            "Completed": ("rgba(200, 230, 201, 0.3)", "green"),
+            "Cancelled": ("rgba(255, 205, 210, 0.3)", "crimson"),
         }
-        return colors.get(self.__status, ("rgba(255, 255, 255, 0.1)", "#5D4037"))
+        return colors.get(self.__status, ("rgba(255, 255, 255, 0.1)", "white"))
 
     def set_status(self, status: str):
         if status in self.__STATUSES:
