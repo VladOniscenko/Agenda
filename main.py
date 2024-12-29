@@ -1,14 +1,86 @@
-import os
 import sys
 from datetime import datetime, timedelta
 from functools import partial
-
+from PySide6.QtCore import Qt
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSizePolicy, QDateTimeEdit
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
+
+
+class CreateTaskWindow(QWidget):
+    def __init__(self, main):
+        super().__init__()
+        self.main = main
+        self.agenda = self.main.agenda
+
+        self.setWindowTitle("Create Task")
+        self.setFixedWidth(300)
+        self.adjustSize()
+
+        # Layout and widgets
+        layout = QVBoxLayout()
+
+        # Name input
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("Name...")
+        layout.addWidget(self.name_input)
+
+        # Description input
+        self.description_input = QTextEdit()
+        self.description_input.setPlaceholderText("Description...")
+        self.description_input.setFixedHeight(100)
+        layout.addWidget(self.description_input)
+
+        # Status input
+        self.status_combo = QComboBox()
+        self.status_combo.addItems(Task.statuses())  # Add options to combo box from TODO_STATUSES tuple
+        layout.addWidget(self.status_combo)
+
+        # Priority input
+        self.priority_combo = QComboBox()
+        self.priority_combo.addItems(Task.priorities())  # Add options to combo box from TODO_STATUSES tuple
+        layout.addWidget(self.priority_combo)
+
+        # Datetime input
+        self.datetime_input = QDateTimeEdit()
+        self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
+        self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
+        layout.addWidget(self.datetime_input)
+
+        # Submit button
+        self.submit_button = QPushButton("Submit")
+        self.submit_button.clicked.connect(self.submit_task)
+        layout.addWidget(self.submit_button)
+
+        # Set layout
+        self.setLayout(layout)
+
+    def submit_task(self):
+        name = self.name_input.text()
+        description = self.description_input.toPlainText()
+        selected_status = self.status_combo.currentText()
+        selected_priority = self.priority_combo.currentText()
+        date = self.datetime_input.dateTime().toPython()
+
+        # check if inputs are not empty
+        if name == '' or selected_status == '' or selected_priority == '' or date == '':
+            return
+
+        # create task
+        create_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
+        if not create_response['success']:
+            print(create_response['message'])
+            return
+
+        task = create_response['task']
+        print(f"Task created! id: {task.id}")
+        self.close()
+
+        self.main.tasks.append(task)
+        self.main.update_tasks_list()
 
 
 class MainWindow(QMainWindow):
@@ -16,6 +88,9 @@ class MainWindow(QMainWindow):
     calendar: None | QDateTimeEdit
     show_hidden_tasks: QCheckBox
     show_all: QCheckBox
+    info_widget: QWidget
+    info_layout: QVBoxLayout
+    task_window: CreateTaskWindow
 
     def __init__(self):
         super().__init__()
@@ -27,22 +102,34 @@ class MainWindow(QMainWindow):
 
         # creating main container main_widget
         self.main_widget = QWidget()
+        self.main_widget.setObjectName('main_widget')
+        self.main_widget.setFixedSize(350, 500)
 
         # add styling to our main widget
         self.main_widget.setStyleSheet("""
+            QWidget#main_widget {
+                background-color: #1f1f1f;
+            }
         """)
 
         # create main layout positioning (vertical alignment)
-        # add our main widget to our layout
         self.main_layout = QVBoxLayout(self.main_widget)
 
         # create header and add to our layout
         self.create_header()
-
         self.create_task_list()
 
-        # # Set the main container/widget as the central widget
-        self.setCentralWidget(self.main_widget)
+        # Create the parent horizontal layout
+        self.parent_layout_widget = QWidget()
+        self.horizontal_layout = QHBoxLayout(self.parent_layout_widget)
+        self.horizontal_layout.setSpacing(0)
+        self.horizontal_layout.setContentsMargins(0,0,0,0)
+
+        # Add main_widget and info_widget to the horizontal layout
+        self.horizontal_layout.addWidget(self.main_widget)
+
+        # Set the parent layout widget as the central widget
+        self.setCentralWidget(self.parent_layout_widget)
 
         # show / open our window
         self.show()
@@ -57,10 +144,11 @@ class MainWindow(QMainWindow):
         self.calendar.setCalendarPopup(True)
         self.calendar.dateChanged.connect(self.change_date)
 
-        self.show_hidden_tasks = QCheckBox('Show hidden')
+        self.show_hidden_tasks = QCheckBox('Show processed')
         self.show_hidden_tasks.clicked.connect(self.update_tasks_list)
 
         self.show_all = QCheckBox('Show all dates')
+        self.show_all.setVisible(False)
         self.show_all.clicked.connect(self.update_tasks_list)
 
         # Create a vertical layout for checkboxes
@@ -86,10 +174,80 @@ class MainWindow(QMainWindow):
         # add our created header layout to main layout
         self.main_layout.addLayout(layout)
 
-    def open_task_info(self, event, task: Task):
+    def open_task_info(self, _, task: Task):
+        item_bg_color, item_text_color = task.status_color
+
+        # Create info_widget
+        if hasattr(self, 'info_widget') and self.info_widget is not None:
+            self.info_widget.deleteLater()
+
+        # Add a layout for the info_widget
+        self.info_widget = QWidget()
+        self.info_layout = QVBoxLayout(self.info_widget)
+        self.info_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.info_widget.setVisible(False)
+        self.info_widget.setObjectName("infoWidget")
+
+        self.info_widget.setStyleSheet("""
+            QWidget#infoWidget {
+                background-color: #2a2a2a;
+            }
+        """)
+
+        # Construct head of info widget
+        head = QWidget()
+        head_layout = QHBoxLayout(head)
+        head_layout.setContentsMargins(0, 0, 0, 0)
+
+        # create task head layout with status and close button
+        task_status = QLabel(f'Task {task.status}')
+        task_status.setStyleSheet(f"""
+            background-color: {item_bg_color};
+            color: {item_text_color};
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 10px;
+            border: solid 1px {item_text_color};
+            border-radius: 5px;
+        """)
+
+        head_layout.addWidget(task_status)
+        head_layout.addStretch()
+
+        close = QPushButton(f'X')
+        close.clicked.connect(self.close_task_info)
+        close.setStyleSheet("background-color: rgba(77, 46, 46, 0.8);")
+
+        head_layout.addWidget(close)
+        self.info_layout.addWidget(head)
+
+        # create task name
+        task_name = QLabel(f'{task.name}')
+        task_name.setStyleSheet("""
+            font-size: 25px;
+            font-weight: bold;
+            margin-left: 5px;
+        """)
+        task_name.setWordWrap(True)
+        self.info_layout.addWidget(task_name)
+
+        # create task description
+        task_description = QLabel(f'{task.description}')
+        task_description.setStyleSheet("""
+            margin-left: 10px;
+        """)
+        task_description.setWordWrap(True)
+        self.info_layout.addWidget(task_description)
+
+
+        self.setFixedWidth(1000)
+        self.horizontal_layout.addWidget(self.info_widget)
+        self.info_widget.setVisible(True)
+
         print(task)
 
-    def mark_complete(self, event, task: Task):
+    def mark_complete(self, _, task: Task):
         update = self.agenda.set_as_completed(task.id)
         if update['success']:
             print(f"Task marked as complete: {task.id}")
@@ -164,7 +322,7 @@ class MainWindow(QMainWindow):
                 }}                
                 
                 QCheckBox::indicator:hover {{
-                    background-color: rgba(0, 255, 0, 0.5);
+                    background-color: rgba(46, 77, 46, 0.8);
                 }}
             """)
 
@@ -260,78 +418,9 @@ class MainWindow(QMainWindow):
         self.date = new_date
         self.update_tasks_list()
 
-
-class CreateTaskWindow(QWidget):
-    def __init__(self, main):
-        super().__init__()
-        self.main = main
-        self.agenda = self.main.agenda
-
-        self.setWindowTitle("Create Task")
-        self.setFixedWidth(300)
-        self.adjustSize()
-
-        # Layout and widgets
-        layout = QVBoxLayout()
-
-        # Name input
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Name...")
-        layout.addWidget(self.name_input)
-
-        # Description input
-        self.description_input = QTextEdit()
-        self.description_input.setPlaceholderText("Description...")
-        self.description_input.setFixedHeight(100)
-        layout.addWidget(self.description_input)
-
-        # Status input
-        self.status_combo = QComboBox()
-        self.status_combo.addItems(Task.statuses())  # Add options to combo box from TODO_STATUSES tuple
-        layout.addWidget(self.status_combo)
-
-        # Priority input
-        self.priority_combo = QComboBox()
-        self.priority_combo.addItems(Task.priorities())  # Add options to combo box from TODO_STATUSES tuple
-        layout.addWidget(self.priority_combo)
-
-        # Datetime input
-        self.datetime_input = QDateTimeEdit()
-        self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
-        self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
-        layout.addWidget(self.datetime_input)
-
-        # Submit button
-        self.submit_button = QPushButton("Submit")
-        self.submit_button.clicked.connect(self.submit_task)
-        layout.addWidget(self.submit_button)
-
-        # Set layout
-        self.setLayout(layout)
-
-    def submit_task(self):
-        name = self.name_input.text()
-        description = self.description_input.toPlainText()
-        selected_status = self.status_combo.currentText()
-        selected_priority = self.priority_combo.currentText()
-        date = self.datetime_input.dateTime().toPython()
-
-        # check if inputs are not empty
-        if name == '' or selected_status == '' or selected_priority == '' or date == '':
-            return
-
-        # create task
-        create_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
-        if not create_response['success']:
-            print(create_response['message'])
-            return
-
-        task = create_response['task']
-        print(f"Task created! id: {task.id}")
-        self.close()
-
-        self.main.tasks.append(task)
-        self.main.update_tasks_list()
+    def close_task_info(self):
+        self.setFixedWidth(350)
+        self.info_widget.setVisible(False)
 
 
 if __name__ == '__main__':
