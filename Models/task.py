@@ -43,10 +43,13 @@ class Task:
     @property
     def status_color(self):
         colors = {
-            "Pending": ("rgba(255, 255, 255, 0.1)", "white"),
-            "Completed": ("rgba(200, 230, 201, 0.3)", "green"),
-            "Cancelled": ("rgba(255, 205, 210, 0.3)", "crimson"),
+            "Pending": ("rgba(63, 63, 63, 0.8)", "lightgray"),  # Dark gray background, light gray text
+            "Completed": ("rgba(46, 77, 46, 0.8)", "lightgreen"),  # Dark green background, light green text
+            "Cancelled": ("rgba(77, 46, 46, 0.8)", "lightcoral"),  # Dark red background, light coral text
+            "In Progress": ("rgba(77, 63, 46, 0.8)", "wheat"),  # Warm brown background, wheat-colored text
+            "On Hold": ("rgba(46, 59, 77, 0.8)", "lightskyblue"),  # Dark blue-gray background, sky blue text
         }
+
         return colors.get(self.__status, ("rgba(255, 255, 255, 0.1)", "white"))
 
     def set_status(self, status: str):
