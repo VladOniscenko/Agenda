@@ -93,9 +93,10 @@ class MainWindow(QMainWindow):
     calendar: None | QDateTimeEdit
     show_hidden_tasks: QCheckBox
     show_all: QCheckBox
-    info_widget: QWidget
-    info_layout: QVBoxLayout
     task_window: CreateTaskWindow
+
+    extended_widget: QWidget
+    extended_layout: QVBoxLayout
 
     def __init__(self):
         super().__init__()
@@ -130,7 +131,7 @@ class MainWindow(QMainWindow):
         self.horizontal_layout.setSpacing(0)
         self.horizontal_layout.setContentsMargins(0,0,0,0)
 
-        # Add main_widget and info_widget to the horizontal layout
+        # Add main_widget to the horizontal layout
         self.horizontal_layout.addWidget(self.main_widget)
 
         # Set the parent layout widget as the central widget
@@ -181,24 +182,7 @@ class MainWindow(QMainWindow):
 
     def open_task_info(self, _, task: Task):
         item_bg_color, item_text_color = task.status_color
-
-        # Create info_widget
-        if hasattr(self, 'info_widget') and self.info_widget is not None:
-            self.info_widget.deleteLater()
-
-        # Add a layout for the info_widget
-        self.info_widget = QWidget()
-        self.info_layout = QVBoxLayout(self.info_widget)
-        self.info_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        self.info_widget.setVisible(False)
-        self.info_widget.setObjectName("infoWidget")
-
-        self.info_widget.setStyleSheet(f"""
-            QWidget#infoWidget {{
-                background-color: {SECOND_BG_COLOR};
-            }}
-        """)
+        widget, layout = self.create_extended_tab()
 
         # Construct head of info widget
         head = QWidget()
@@ -237,11 +221,11 @@ class MainWindow(QMainWindow):
         head_layout.addStretch()
 
         close = QPushButton(f'X')
-        close.clicked.connect(self.close_task_info)
+        close.clicked.connect(self.close_extended_tab)
         close.setStyleSheet(f"background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
 
         head_layout.addWidget(close)
-        self.info_layout.addWidget(head)
+        layout.addWidget(head)
 
         # create task name
         task_name = QLabel(f'{task.name}')
@@ -251,19 +235,17 @@ class MainWindow(QMainWindow):
             border: solid 1px pink;
         """)
         task_name.setWordWrap(True)
-        self.info_layout.addWidget(task_name)
+        layout.addWidget(task_name)
 
         # create task description
         task_name = QLabel(f'{task.description}')
         task_name.setStyleSheet("""
         """)
         task_name.setWordWrap(True)
-        self.info_layout.addWidget(task_name)
-
+        layout.addWidget(task_name)
 
         self.setFixedWidth(int(WIDTH * 2.5))
-        self.horizontal_layout.addWidget(self.info_widget)
-        self.info_widget.setVisible(True)
+        self.horizontal_layout.addWidget(widget)
 
         print(task)
 
@@ -400,8 +382,13 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.scroll_area)
 
     def open_create_task_window(self):
-        self.task_window = CreateTaskWindow(self)
-        self.task_window.show()
+        widget, layout = self.create_extended_tab()
+
+        head = QLabel('Create new task')
+        layout.addWidget(head)
+
+        # self.task_window = CreateTaskWindow(self)
+        # self.task_window.show()
 
     def update_tasks_list(self):
         self.scroll_area.deleteLater()
@@ -414,9 +401,43 @@ class MainWindow(QMainWindow):
         self.date = new_date
         self.update_tasks_list()
 
-    def close_task_info(self):
+    def create_extended_tab(self):
+        # check if it is created
+        try:
+            if hasattr(self, 'extended_widget') and self.extended_widget and self.extended_widget.isWidgetType():
+                self.extended_widget.deleteLater()
+        except RuntimeError:
+            # Handle the case when the widget has already been deleted
+            pass
+
+        # Add a layout for the extended_widget
+        self.extended_widget = QWidget()
+        self.extended_layout = QVBoxLayout(self.extended_widget)
+        self.extended_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.extended_widget.setVisible(False)
+        self.extended_widget.setObjectName("createWidget")
+
+        self.extended_widget.setStyleSheet(f"""
+            QWidget#createWidget {{
+                background-color: {SECOND_BG_COLOR};
+            }}
+        """)
+
+        self.setFixedWidth(int(WIDTH * 2.5))
+        self.horizontal_layout.addWidget(self.extended_widget)
+        self.extended_widget.setVisible(True)
+
+        return self.extended_widget, self.extended_layout
+
+    def close_extended_tab(self):
+        try:
+            if hasattr(self, 'extended_widget') and self.extended_widget is not None:
+                self.extended_widget.deleteLater()
+        except RuntimeError:
+            # Handle the case when the widget has already been deleted
+            pass
         self.setFixedWidth(WIDTH)
-        self.info_widget.setVisible(False)
 
 
 if __name__ == '__main__':
