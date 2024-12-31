@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
 
 class Task:
     __name: str
@@ -52,8 +53,42 @@ class Task:
 
         return colors.get(self.__status, ("rgba(255, 255, 255, 0.1)", "white"))
 
+    @property
+    def priority_color(self):
+        colors = {
+            "Low": ("rgba(255, 255, 255, 0.1)", "white"),  # Low priority: Light background, white text
+            "Medium": ("rgba(46, 59, 77, 0.8)", "lightskyblue"),  # Medium priority: Darker blue-gray, light blue text
+            "High": ("rgba(255, 165, 0, 0.3)", "rgba(204, 102, 0, 0.8)"),  # High priority: Orange background, darker orange text
+            "Critical": ("rgba(77, 46, 46, 0.8)", "lightcoral"),  # Critical priority: Dark red background, light coral text
+        }
+
+        # Ensure only valid priorities are used; fallback for invalid priority
+        return colors.get(self.__priority,("rgba(255, 255, 255, 0.1)", "white"))
+
     def set_status(self, status: str):
         if status in self.__STATUSES:
             self.__status = status
         else:
             raise ValueError("Unexpected status")
+
+    @property
+    def task_time_label(self):
+        current_date = datetime.now()
+
+        # Convert task.date string to QDateTime
+        try:
+            task_date = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            task_date = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S")
+
+        # Compare the task date with the current date
+        if task_date.date() == current_date.date():
+            time_label_text = 'Today'
+        elif task_date.date() == (current_date + timedelta(days=1)).date():
+            time_label_text = 'Tomorrow'
+        elif task_date.date() < current_date.date():
+            time_label_text = 'Passed'
+        else:
+            time_label_text = task_date.strftime('%d-%m-%Y')
+
+        return time_label_text

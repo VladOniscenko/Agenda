@@ -4,11 +4,16 @@ from functools import partial
 from PySide6.QtCore import Qt
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSizePolicy
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
 
+WIDTH, HEIGHT = 300, 400
+MAIN_BG_COLOR = '#1f1f1f'
+SECOND_BG_COLOR = '#2a2a2a'
+FALSE_BG_COLOR = 'rgba(77, 46, 46, 0.8)'
+FALSE_TEXT_COLOR = 'lightcoral'
 
 class CreateTaskWindow(QWidget):
     def __init__(self, main):
@@ -17,7 +22,7 @@ class CreateTaskWindow(QWidget):
         self.agenda = self.main.agenda
 
         self.setWindowTitle("Create Task")
-        self.setFixedWidth(300)
+        self.setFixedWidth(WIDTH)
         self.adjustSize()
 
         # Layout and widgets
@@ -94,7 +99,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Task Manager")
+        self.setWindowTitle("Todo's Manager")
         self.agenda = AgendaController(1)
 
         self.date = QDateTime.currentDateTime()
@@ -103,13 +108,13 @@ class MainWindow(QMainWindow):
         # creating main container main_widget
         self.main_widget = QWidget()
         self.main_widget.setObjectName('main_widget')
-        self.main_widget.setFixedSize(350, 500)
+        self.main_widget.setFixedSize(300, 400)
 
         # add styling to our main widget
-        self.main_widget.setStyleSheet("""
-            QWidget#main_widget {
-                background-color: #1f1f1f;
-            }
+        self.main_widget.setStyleSheet(f"""
+            QWidget#main_widget {{
+                background-color: {MAIN_BG_COLOR};
+            }}
         """)
 
         # create main layout positioning (vertical alignment)
@@ -189,10 +194,10 @@ class MainWindow(QMainWindow):
         self.info_widget.setVisible(False)
         self.info_widget.setObjectName("infoWidget")
 
-        self.info_widget.setStyleSheet("""
-            QWidget#infoWidget {
-                background-color: #2a2a2a;
-            }
+        self.info_widget.setStyleSheet(f"""
+            QWidget#infoWidget {{
+                background-color: {SECOND_BG_COLOR};
+            }}
         """)
 
         # Construct head of info widget
@@ -217,31 +222,30 @@ class MainWindow(QMainWindow):
 
         close = QPushButton(f'X')
         close.clicked.connect(self.close_task_info)
-        close.setStyleSheet("background-color: rgba(77, 46, 46, 0.8);")
+        close.setStyleSheet(f"background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
 
         head_layout.addWidget(close)
         self.info_layout.addWidget(head)
 
         # create task name
         task_name = QLabel(f'{task.name}')
-        task_name.setStyleSheet("""
-            font-size: 25px;
+        task_name.setStyleSheet(f"""
+            font-size: 20px;
             font-weight: bold;
-            margin-left: 5px;
+            border: solid 1px pink;
         """)
         task_name.setWordWrap(True)
         self.info_layout.addWidget(task_name)
 
         # create task description
-        task_description = QLabel(f'{task.description}')
-        task_description.setStyleSheet("""
-            margin-left: 10px;
+        task_name = QLabel(f'{task.description}')
+        task_name.setStyleSheet("""
         """)
-        task_description.setWordWrap(True)
-        self.info_layout.addWidget(task_description)
+        task_name.setWordWrap(True)
+        self.info_layout.addWidget(task_name)
 
 
-        self.setFixedWidth(1000)
+        self.setFixedWidth(int(WIDTH * 2.5))
         self.horizontal_layout.addWidget(self.info_widget)
         self.info_widget.setVisible(True)
 
@@ -292,8 +296,13 @@ class MainWindow(QMainWindow):
             item_container.setContentsMargins(15, 0, 15, 0)
             item_container.setFixedHeight(50)
 
+            item_bg_color, item_text_color = task.priority_color
+            print(item_bg_color, item_text_color)
             # get task colors
-            item_bg_color, item_text_color = task.status_color
+            # if task.status == 'Completed':
+            #     item_bg_color, item_text_color = task.status_color
+            # else:
+            #     item_bg_color, item_text_color = task.priority_color
 
             item_container.setStyleSheet(f"""
                 QWidget#itemContainer {{
@@ -305,10 +314,6 @@ class MainWindow(QMainWindow):
                     background-color: rgba(255, 255, 255, 0.15);
                 }}
                 
-                QCheckBox {{
-                    padding-right: 15px;
-                }}
-    
                 QCheckBox::indicator {{
                     width: 20px;
                     height: 20px;
@@ -341,39 +346,17 @@ class MainWindow(QMainWindow):
                 task_name = task.name[:25] + '...'
 
             text = QLabel(f'{task_name}')
+            text.setStyleSheet(f"color: {item_text_color};")
             item_layout.addWidget(text)
 
             # Add stretch to push items to fill space
             item_layout.addStretch()
 
-            # Convert task.date string to QDateTime
-            try:
-                task_date = datetime.strptime(task.date, "%Y-%m-%d %H:%M:%S.%f")
-            except ValueError:
-                task_date = datetime.strptime(task.date, "%Y-%m-%d %H:%M:%S")
-
-            current_date = datetime.now()
-
-            # Initialize the label text
-            time_label_bg, time_label_color = task.status_color
-
-
-            # Compare the task date with the current date
-            if task_date.date() == current_date.date():
-                time_label_text = 'Today'
-            elif task_date.date() == (current_date + timedelta(days=1)).date():
-                time_label_text = 'Tomorrow'
-            elif task_date.date() < current_date.date():
-                time_label_text = 'Passed'
-                time_label_color = 'red'
-            else:
-                time_label_text = task_date.strftime('%d-%m-%Y')
-
-            time_label = QLabel(time_label_text)
+            time_label = QLabel(task.task_time_label)
             time_label.setObjectName('task_time_label')
             time_label.setStyleSheet(f"""
                 QLabel#task_time_label {{
-                    color: {time_label_color};
+                    color: {item_text_color};
                 }}
             """)
 
@@ -419,7 +402,7 @@ class MainWindow(QMainWindow):
         self.update_tasks_list()
 
     def close_task_info(self):
-        self.setFixedWidth(350)
+        self.setFixedWidth(WIDTH)
         self.info_widget.setVisible(False)
 
 
@@ -427,7 +410,7 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
 
     window = MainWindow()
-    window.setFixedSize(350, 500)
+    window.setFixedSize(WIDTH, HEIGHT)
     window.move(0, 0)
 
     app.exec()
