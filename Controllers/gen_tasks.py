@@ -21,7 +21,7 @@ if __name__ == '__main__':
         random_date_str = random_date.strftime('%Y-%m-%d %H:%M:%S')
 
         # Random priority (1-3), status (1 = Pending, 2 = In Progress, 3 = Completed), user_id = 1
-        priority = random.randint(1, 3)
+        priority = random.choice(('Low', 'Medium', 'High', 'Critical'))
         status = random.choice(['Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled'])  # 1 = Pending, 2 = In Progress, 3 = Completed, etc.
         user_id = 1
 
