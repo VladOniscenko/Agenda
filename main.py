@@ -390,8 +390,8 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(create_form)
 
-        # Global stylesheet
-        self.setStyleSheet(f"""
+        # Global form stylesheet
+        create_form.setStyleSheet(f"""
             QLineEdit, QTextEdit, QComboBox, QDateTimeEdit {{
                 background-color: {SECOND_BG_COLOR};
                 padding: 10px;
