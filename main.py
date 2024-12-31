@@ -27,6 +27,12 @@ class MainWindow(QMainWindow):
     extended_widget: QWidget
     extended_layout: QVBoxLayout
 
+    priority_combo: QComboBox
+    status_combo: QComboBox
+    description_input: QTextEdit
+    name_input: QLineEdit
+    datetime_input: QDateTimeEdit
+
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Todo's Manager")
@@ -350,31 +356,31 @@ class MainWindow(QMainWindow):
         create_form_layout.setSpacing(10)  # Space between form elements
 
         # Name input
-        name_input = QLineEdit()  # Name input
-        name_input.setPlaceholderText("Name...")
-        create_form_layout.addWidget(name_input)
+        self.name_input = QLineEdit()  # Name input
+        self.name_input.setPlaceholderText("Name...")
+        create_form_layout.addWidget(self.name_input)
 
         # Description input
-        description_input = QTextEdit()
-        description_input.setPlaceholderText("Description...")
-        description_input.setFixedHeight(75)
-        create_form_layout.addWidget(description_input)
+        self.description_input = QTextEdit()
+        self.description_input.setPlaceholderText("Description...")
+        self.description_input.setFixedHeight(75)
+        create_form_layout.addWidget(self.description_input)
 
         # Status input
-        status_combo = QComboBox()
-        status_combo.addItems(["Pending", "In Progress", "Completed"])  # Example items
-        create_form_layout.addWidget(status_combo)
+        self.status_combo = QComboBox()
+        self.status_combo.addItems(["Pending", "In Progress", "Completed"])  # Example items
+        create_form_layout.addWidget(self.status_combo)
 
         # Priority input
-        priority_combo = QComboBox()
-        priority_combo.addItems(["Low", "Medium", "High"])  # Example items
-        create_form_layout.addWidget(priority_combo)
+        self.priority_combo = QComboBox()
+        self.priority_combo.addItems(["Low", "Medium", "High"])  # Example items
+        create_form_layout.addWidget(self.priority_combo)
 
         # Datetime input
-        datetime_input = QDateTimeEdit()
-        datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
-        datetime_input.setCalendarPopup(True)  # Enable the calendar popup
-        create_form_layout.addWidget(datetime_input)
+        self.datetime_input = QDateTimeEdit()
+        self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
+        self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
+        create_form_layout.addWidget(self.datetime_input)
 
         # Submit button
         submit_button = QPushButton("Submit")
@@ -468,10 +474,10 @@ class MainWindow(QMainWindow):
 
         task = create_response['task']
         print(f"Task created! id: {task.id}")
-        self.close()
 
-        self.main.tasks.append(task)
-        self.main.update_tasks_list()
+        self.close_extended_tab()
+        self.tasks.append(task)
+        self.update_tasks_list()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
