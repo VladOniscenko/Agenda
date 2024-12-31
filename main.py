@@ -93,7 +93,6 @@ class MainWindow(QMainWindow):
     calendar: None | QDateTimeEdit
     show_hidden_tasks: QCheckBox
     show_all: QCheckBox
-    task_window: CreateTaskWindow
 
     extended_widget: QWidget
     extended_layout: QVBoxLayout
@@ -386,9 +385,6 @@ class MainWindow(QMainWindow):
 
         head = QLabel('Create new task')
         layout.addWidget(head)
-
-        # self.task_window = CreateTaskWindow(self)
-        # self.task_window.show()
 
     def update_tasks_list(self):
         self.scroll_area.deleteLater()
