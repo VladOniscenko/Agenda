@@ -1,10 +1,10 @@
 import sys
-from datetime import datetime, timedelta
+
 from functools import partial
 from PySide6.QtCore import Qt
 from PySide6.QtCore import QDateTime
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox, QSizePolicy
+    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
@@ -218,6 +218,22 @@ class MainWindow(QMainWindow):
         """)
 
         head_layout.addWidget(task_status)
+
+        # add priority to head
+        item_bg_color, item_text_color = task.priority_color
+        task_priority = QLabel(f'{task.priority} Priority')
+        task_priority.setStyleSheet(f"""
+            background-color: {item_bg_color};
+            color: {item_text_color};
+            text-transform: uppercase;
+            font-weight: bold;
+            padding: 10px;
+            border: solid 1px {item_text_color};
+            border-radius: 5px;
+        """)
+        head_layout.addWidget(task_priority)
+
+        # stretch head for close button
         head_layout.addStretch()
 
         close = QPushButton(f'X')
