@@ -263,6 +263,12 @@ class MainWindow(QMainWindow):
 
         # Create container where content will be placed
         scrollable_content = QWidget()
+        scrollable_content.setObjectName('scroll_content')
+        scrollable_content.setStyleSheet(f"""
+            QWidget#scroll_content {{
+                background: {MAIN_BG_COLOR};
+            }}
+        """)
         scrollable_content.setContentsMargins(0, 0, 0, 0)  # Set margins
 
         # Set layout to our container
@@ -306,6 +312,10 @@ class MainWindow(QMainWindow):
                 
                 QWidget#itemContainer:hover {{
                     background-color: rgba(255, 255, 255, 0.15);
+                }}
+                
+                QCheckBox#itemContainer {{
+                    padding-right: 115px;
                 }}
                 
                 QCheckBox::indicator {{
