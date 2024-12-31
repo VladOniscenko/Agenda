@@ -14,78 +14,8 @@ MAIN_BG_COLOR = '#1f1f1f'
 SECOND_BG_COLOR = '#2a2a2a'
 FALSE_BG_COLOR = 'rgba(77, 46, 46, 0.8)'
 FALSE_TEXT_COLOR = 'lightcoral'
-
-class CreateTaskWindow(QWidget):
-    def __init__(self, main):
-        super().__init__()
-        self.main = main
-        self.agenda = self.main.agenda
-
-        self.setWindowTitle("Create Task")
-        self.setFixedWidth(WIDTH)
-        self.adjustSize()
-
-        # Layout and widgets
-        layout = QVBoxLayout()
-
-        # Name input
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Name...")
-        layout.addWidget(self.name_input)
-
-        # Description input
-        self.description_input = QTextEdit()
-        self.description_input.setPlaceholderText("Description...")
-        self.description_input.setFixedHeight(100)
-        layout.addWidget(self.description_input)
-
-        # Status input
-        self.status_combo = QComboBox()
-        self.status_combo.addItems(Task.statuses())  # Add options to combo box from TODO_STATUSES tuple
-        layout.addWidget(self.status_combo)
-
-        # Priority input
-        self.priority_combo = QComboBox()
-        self.priority_combo.addItems(Task.priorities())  # Add options to combo box from TODO_STATUSES tuple
-        layout.addWidget(self.priority_combo)
-
-        # Datetime input
-        self.datetime_input = QDateTimeEdit()
-        self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
-        self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
-        layout.addWidget(self.datetime_input)
-
-        # Submit button
-        self.submit_button = QPushButton("Submit")
-        self.submit_button.clicked.connect(self.submit_task)
-        layout.addWidget(self.submit_button)
-
-        # Set layout
-        self.setLayout(layout)
-
-    def submit_task(self):
-        name = self.name_input.text()
-        description = self.description_input.toPlainText()
-        selected_status = self.status_combo.currentText()
-        selected_priority = self.priority_combo.currentText()
-        date = self.datetime_input.dateTime().toPython()
-
-        # check if inputs are not empty
-        if name == '' or selected_status == '' or selected_priority == '' or date == '':
-            return
-
-        # create task
-        create_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
-        if not create_response['success']:
-            print(create_response['message'])
-            return
-
-        task = create_response['task']
-        print(f"Task created! id: {task.id}")
-        self.close()
-
-        self.main.tasks.append(task)
-        self.main.update_tasks_list()
+TRUE_BG_COLOR = 'rgba(46, 77, 46, 0.8)'
+TRUE_TEXT_COLOR = 'lightgreen'
 
 
 class MainWindow(QMainWindow):
@@ -220,8 +150,8 @@ class MainWindow(QMainWindow):
         head_layout.addStretch()
 
         close = QPushButton(f'X')
+        close.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
         close.clicked.connect(self.close_extended_tab)
-        close.setStyleSheet(f"background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
 
         head_layout.addWidget(close)
         layout.addWidget(head)
@@ -393,8 +323,82 @@ class MainWindow(QMainWindow):
     def open_create_task_window(self):
         widget, layout = self.create_extended_tab()
 
-        head = QLabel('Create new task')
-        layout.addWidget(head)
+        header = QWidget()
+        header_layout = QHBoxLayout(header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+
+        # title and close button
+        title = QLabel('Create Task')
+        title.setStyleSheet("""
+            font-weight: bold;
+            font-size: 20px;
+        """)
+        header_layout.addWidget(title)
+        header_layout.addStretch()
+
+        close = QPushButton(f'X')
+        close.clicked.connect(self.close_extended_tab)
+        close.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
+        header_layout.addWidget(close)
+
+        layout.addWidget(header)  # add header to layout
+
+        # Create form to add task
+        create_form = QWidget()
+        create_form_layout = QVBoxLayout(create_form)
+        create_form_layout.setContentsMargins(0, 0, 0, 0)
+        create_form_layout.setSpacing(10)  # Space between form elements
+
+        # Name input
+        name_input = QLineEdit()  # Name input
+        name_input.setPlaceholderText("Name...")
+        create_form_layout.addWidget(name_input)
+
+        # Description input
+        description_input = QTextEdit()
+        description_input.setPlaceholderText("Description...")
+        description_input.setFixedHeight(75)
+        create_form_layout.addWidget(description_input)
+
+        # Status input
+        status_combo = QComboBox()
+        status_combo.addItems(["Pending", "In Progress", "Completed"])  # Example items
+        create_form_layout.addWidget(status_combo)
+
+        # Priority input
+        priority_combo = QComboBox()
+        priority_combo.addItems(["Low", "Medium", "High"])  # Example items
+        create_form_layout.addWidget(priority_combo)
+
+        # Datetime input
+        datetime_input = QDateTimeEdit()
+        datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
+        datetime_input.setCalendarPopup(True)  # Enable the calendar popup
+        create_form_layout.addWidget(datetime_input)
+
+        # Submit button
+        submit_button = QPushButton("Submit")
+        submit_button.setStyleSheet(f"""
+            background-color: {TRUE_BG_COLOR};
+            color: {TRUE_TEXT_COLOR};
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+        """)
+        submit_button.clicked.connect(self.submit_task)  # Connect the submit task method
+        create_form_layout.addWidget(submit_button)
+
+        layout.addWidget(create_form)
+
+        # Global stylesheet
+        self.setStyleSheet(f"""
+            QLineEdit, QTextEdit, QComboBox, QDateTimeEdit {{
+                background-color: {SECOND_BG_COLOR};
+                padding: 10px;
+                border-radius: 5px;
+                border: 1px solid #666;
+            }}
+        """)
 
     def update_tasks_list(self):
         self.scroll_area.deleteLater()
@@ -407,7 +411,7 @@ class MainWindow(QMainWindow):
         self.date = new_date
         self.update_tasks_list()
 
-    def create_extended_tab(self):
+    def create_extended_tab(self, w: int = 750):
         # check if it is created
         try:
             if hasattr(self, 'extended_widget') and self.extended_widget and self.extended_widget.isWidgetType():
@@ -430,7 +434,7 @@ class MainWindow(QMainWindow):
             }}
         """)
 
-        self.setFixedWidth(int(WIDTH * 2.5))
+        self.setFixedWidth(w)
         self.horizontal_layout.addWidget(self.extended_widget)
         self.extended_widget.setVisible(True)
 
@@ -445,6 +449,29 @@ class MainWindow(QMainWindow):
             pass
         self.setFixedWidth(WIDTH)
 
+    def submit_task(self):
+        name = self.name_input.text()
+        description = self.description_input.toPlainText()
+        selected_status = self.status_combo.currentText()
+        selected_priority = self.priority_combo.currentText()
+        date = self.datetime_input.dateTime().toPython()
+
+        # check if inputs are not empty
+        if name == '' or selected_status == '' or selected_priority == '' or date == '':
+            return
+
+        # create task
+        create_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
+        if not create_response['success']:
+            print(create_response['message'])
+            return
+
+        task = create_response['task']
+        print(f"Task created! id: {task.id}")
+        self.close()
+
+        self.main.tasks.append(task)
+        self.main.update_tasks_list()
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
