@@ -296,13 +296,10 @@ class MainWindow(QMainWindow):
             item_container.setContentsMargins(15, 0, 15, 0)
             item_container.setFixedHeight(50)
 
-            item_bg_color, item_text_color = task.priority_color
-            print(item_bg_color, item_text_color)
             # get task colors
-            # if task.status == 'Completed':
-            #     item_bg_color, item_text_color = task.status_color
-            # else:
-            #     item_bg_color, item_text_color = task.priority_color
+            item_bg_color, item_text_color = task.priority_color
+            if task.status == 'Completed':
+                item_bg_color, _ = task.status_color
 
             item_container.setStyleSheet(f"""
                 QWidget#itemContainer {{
