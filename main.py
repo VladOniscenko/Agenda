@@ -321,7 +321,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.scroll_area)
 
     def open_create_task_window(self):
-        widget, layout = self.create_extended_tab()
+        widget, layout = self.create_extended_tab(300)
 
         header = QWidget()
         header_layout = QHBoxLayout(header)
@@ -434,7 +434,7 @@ class MainWindow(QMainWindow):
             }}
         """)
 
-        self.setFixedWidth(w)
+        self.setFixedWidth(WIDTH + w)
         self.horizontal_layout.addWidget(self.extended_widget)
         self.extended_widget.setVisible(True)
 
