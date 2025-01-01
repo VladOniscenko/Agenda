@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         head_layout.setContentsMargins(0, 0, 0, 0)
 
         # create task head layout with status and close button
-        task_status = QLabel(f'Task {task.status}')
+        task_status = QLabel(f'Task is {task.status}')
         task_status.setStyleSheet(f"""
             background-color: {item_bg_color};
             color: {item_text_color};
