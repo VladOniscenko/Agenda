@@ -1,6 +1,6 @@
-# Personal Agenda with TODO List 📅✅
+# Personal Task Manager 📅✅
 
-A simple and efficient **Personal Agenda** application built with Python, designed to help you organize your tasks and keep track of your daily activities. Whether it's managing your to-dos or setting up reminders, this app has you covered! 📝🎯
+A simple and efficient **Personal Task Manager** application built with Python, designed to help you organize your tasks and keep track of your daily activities. Whether it's managing your to-dos or setting up reminders, this app has you covered! 📝🎯
 
 ## Features ✨
 
