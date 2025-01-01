@@ -1,4 +1,4 @@
-# Personal Task Manager 📅✅
+# 📅 Personal Task Manager ✅
 
 A simple and efficient **Personal Task Manager** application built with Python, designed to help you organize your tasks and keep track of your daily activities. Whether it's managing your to-dos or setting up reminders, this app has you covered! 📝🎯
 
@@ -9,14 +9,29 @@ A simple and efficient **Personal Task Manager** application built with Python, 
 - 📅 **Track your daily agenda** – Stay on top of your tasks and never forget an important to-do.
 - 🕒 **Task completion status** – Keep track of which tasks are done and which need attention.
 
+## Preview 📸
+
+Here are some screenshots of the app in action:
+
+### Task Manager Interface
+![Task Manager Interface](assets/prev-1.png)
+
+### Add New Tasks
+![Add New Tasks](assets/prev-2.png)
+
+### View Tasks
+![View Tasks](assets/prev-3.png)
+
+### Edit Task
+![Mark Task as Completed](assets/prev-4.png)
+
 ## Installation 🔧
 
 ### Prerequisites 📦
 
-- Python 3.9+ is required to run the app.
+1. **Python 3.9+** is required to run the app. Ensure it's installed on your system.
 
-### Steps 🚀
+2. Install the required dependencies listed in `requirements.txt`. Run the following command after cloning the repository:
 
-1. Clone the repository:
    ```bash
-   git clone https://github.com/VladOniscenko/Agenda.git
+   pip install -r requirements.txt
