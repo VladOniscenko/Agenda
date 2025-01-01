@@ -224,109 +224,114 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)  # Set margins
         layout.setSpacing(5)  # Optional: Add spacing between items
 
-        # showed tasks count
-        showed_tasks_count = 0
-
         if self.show_all.isChecked():
             get_tasks_response = self.agenda.get_tasks()
         else:
-            get_tasks_response = self.agenda.get_tasks(self.date.toString('yyyy-MM-dd'))
+            active_tasks = not self.show_hidden_tasks.isChecked()
+            get_tasks_response = self.agenda.get_tasks(self.date.toString('yyyy-MM-dd'), active_tasks=active_tasks)
 
         self.tasks = get_tasks_response['tasks'] if get_tasks_response['success'] else []
 
-        # Add items to the scrollable container layout
-        for num, task in enumerate(self.tasks):
-            if not self.show_hidden_tasks.isChecked() and task.status in ('Cancelled', 'Completed'):
-                continue
-
-            showed_tasks_count += 1
-
-            # Create item container
-            item_container = QWidget()
-            item_container.setObjectName("itemContainer")  # Set a unique object name
-            item_container.setContentsMargins(15, 0, 15, 0)
-            item_container.setFixedHeight(50)
-
-            # get task colors
-            item_bg_color, item_text_color = task.priority_color
-            if task.status == 'Completed':
-                item_bg_color, _ = task.status_color
-
-            item_container.setStyleSheet(f"""
-                QWidget#itemContainer {{
-                    background-color: {item_bg_color};
-                    color: {item_text_color};
-                }}
-                
-                QWidget#itemContainer:hover {{
-                    background-color: rgba(255, 255, 255, 0.15);
-                }}
-                
-                QCheckBox#itemContainer {{
-                    padding-right: 115px;
-                }}
-                
-                QCheckBox::indicator {{
-                    width: 20px;
-                    height: 20px;
-                    border-radius: 11px;
-                    border: 1px solid gray;
-                    background-color: rgba(255, 255, 255, 0.1);
-                }}
-    
-                QCheckBox::indicator:unchecked {{
-                    background-color: rgba(255, 255, 255, 0.1);
-                }}                
-                
-                QCheckBox::indicator:hover {{
-                    background-color: rgba(46, 77, 46, 0.8);
-                }}
-            """)
-
-            # Set container layout
-            item_layout = QHBoxLayout(item_container)
-            item_layout.setContentsMargins(0, 0, 0, 0)  # Remove inner margins
-
-            if task.status != 'Completed':
-                # Add our item info to layout
-                checkbox = QCheckBox()
-                item_layout.addWidget(checkbox)
-                checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
-
-            task_name = task.name
-            if len(task.name) > 25:
-                task_name = task.name[:25] + '...'
-
-            text = QLabel(f'{task_name}')
-            text.setStyleSheet(f"color: {item_text_color};")
-            item_layout.addWidget(text)
-
-            # Add stretch to push items to fill space
-            item_layout.addStretch()
-
-            time_label = QLabel(task.task_time_label)
-            time_label.setObjectName('task_time_label')
-            time_label.setStyleSheet(f"""
-                QLabel#task_time_label {{
-                    color: {item_text_color};
-                }}
-            """)
-
-            item_layout.addWidget(time_label)
-
-            # Add the item container to the scrollable layout
-            layout.addWidget(item_container)
-
-            # Add event listeners
-            item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
-
-        if showed_tasks_count == 0:
+        if len(self.tasks) == 0:
             no_items_label = QLabel('No items found')
             no_items_label.setStyleSheet("""
                 color: crimson;
                 padding: 20px;
             """)
             layout.addWidget(no_items_label)
+        else:
+            try:
+                if hasattr(self, 'count_label') and self.count_label and self.count_label.isWidgetType():
+                    self.count_label.deleteLater()
+            except RuntimeError:
+                pass
+
+            self.count_label = QLabel(f'Tasks: {len(self.tasks)}')
+            self.main_layout.addWidget(self.count_label)
+
+            # Add items to the scrollable container layout
+            for num, task in enumerate(self.tasks):
+                if not self.show_hidden_tasks.isChecked() and task.status in ('Cancelled', 'Completed'):
+                    continue
+
+                # Create item container
+                item_container = QWidget()
+                item_container.setObjectName("itemContainer")  # Set a unique object name
+                item_container.setContentsMargins(15, 0, 15, 0)
+                item_container.setFixedHeight(50)
+
+                # get task colors
+                item_bg_color, item_text_color = task.priority_color
+                if task.status == 'Completed':
+                    item_bg_color, _ = task.status_color
+
+                item_container.setStyleSheet(f"""
+                    QWidget#itemContainer {{
+                        background-color: {item_bg_color};
+                        color: {item_text_color};
+                    }}
+                    
+                    QWidget#itemContainer:hover {{
+                        background-color: rgba(255, 255, 255, 0.15);
+                    }}
+                    
+                    QCheckBox#itemContainer {{
+                        padding-right: 115px;
+                    }}
+                    
+                    QCheckBox::indicator {{
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 11px;
+                        border: 1px solid gray;
+                        background-color: rgba(255, 255, 255, 0.1);
+                    }}
+        
+                    QCheckBox::indicator:unchecked {{
+                        background-color: rgba(255, 255, 255, 0.1);
+                    }}                
+                    
+                    QCheckBox::indicator:hover {{
+                        background-color: rgba(46, 77, 46, 0.8);
+                    }}
+                """)
+
+                # Set container layout
+                item_layout = QHBoxLayout(item_container)
+                item_layout.setContentsMargins(0, 0, 0, 0)  # Remove inner margins
+
+                if task.status != 'Completed':
+                    # Add our item info to layout
+                    checkbox = QCheckBox()
+                    item_layout.addWidget(checkbox)
+                    checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
+
+                task_name = task.name
+                if len(task.name) > 25:
+                    task_name = task.name[:25] + '...'
+
+                text = QLabel(f'{task_name}')
+                text.setStyleSheet(f"color: {item_text_color};")
+                item_layout.addWidget(text)
+
+                # Add stretch to push items to fill space
+                item_layout.addStretch()
+
+                time_label = QLabel(task.task_time_label)
+                time_label.setObjectName('task_time_label')
+                time_label.setStyleSheet(f"""
+                    QLabel#task_time_label {{
+                        color: {item_text_color};
+                    }}
+                """)
+
+                item_layout.addWidget(time_label)
+
+                # Add the item container to the scrollable layout
+                layout.addWidget(item_container)
+
+                # Add event listeners
+                item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
 
         # dont set spaces between items
         layout.addStretch()

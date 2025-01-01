@@ -56,13 +56,17 @@ class AgendaController:
             'task': Task(*raw_task[:5], identifier=raw_task[5])
         }
 
-    def get_tasks(self, date: str|None = None) -> dict:
+    def get_tasks(self, date: str|None = None, active_tasks = False) -> dict:
         # Base query
         query = """
             SELECT name, description, date, priority, status, id
             FROM tasks
             WHERE user_id = ?
         """
+
+        if active_tasks:
+            query += "AND status in ('Pending', 'In Progress', 'On Hold')"
+
         params = [self.user_id]
 
         # Add condition for filtering by date if 'date' is provided
