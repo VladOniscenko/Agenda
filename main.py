@@ -26,6 +26,7 @@ class MainWindow(QMainWindow):
     calendar: None | QDateTimeEdit
     show_hidden_tasks: QCheckBox
     show_all: QCheckBox
+    count_label: QLabel
 
     extended_widget: QWidget
     extended_layout: QVBoxLayout
@@ -230,6 +231,16 @@ class MainWindow(QMainWindow):
             print(f"{update['message']}")
 
     def create_task_list(self):
+        try:
+            if (
+                    hasattr(self, 'count_label')
+                    and self.count_label
+                    and self.count_label.isWidgetType()
+            ):
+                self.count_label.deleteLater()
+        except RuntimeError:
+            pass
+
         # Create scrollable area
         self.scroll_area = QScrollArea()
         self.scroll_area.setObjectName('task_list')
@@ -271,16 +282,6 @@ class MainWindow(QMainWindow):
             """)
             layout.addWidget(no_items_label)
         else:
-            try:
-                if (
-                    hasattr(self, 'count_label')
-                    and self.count_label
-                    and self.count_label.isWidgetType()
-                ):
-                    self.count_label.deleteLater()
-            except RuntimeError:
-                pass
-
             self.count_label = QLabel(f'Tasks: {len(self.tasks)}')
             self.main_layout.addWidget(self.count_label)
 
@@ -412,7 +413,7 @@ class MainWindow(QMainWindow):
         close = QPushButton('X')
         close.clicked.connect(self.close_extended_tab)
         close.setStyleSheet(f"""
-            width: 75px;
+            width: 50px;
             padding: 5px;
             border-radius: 5px;
             background-color: {FALSE_BG_COLOR};
