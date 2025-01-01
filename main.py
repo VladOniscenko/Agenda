@@ -4,8 +4,10 @@ from functools import partial
 from PySide6.QtCore import Qt
 from PySide6.QtCore import QDateTime
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
-    QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
+from PySide6.QtWidgets import (QPushButton, QWidget, QVBoxLayout,
+                               QScrollArea, QLabel, QMainWindow,
+                               QApplication, QHBoxLayout, QDateTimeEdit,
+                               QComboBox, QTextEdit, QLineEdit, QCheckBox)
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
@@ -66,7 +68,7 @@ class MainWindow(QMainWindow):
         self.parent_layout_widget = QWidget()
         self.horizontal_layout = QHBoxLayout(self.parent_layout_widget)
         self.horizontal_layout.setSpacing(0)
-        self.horizontal_layout.setContentsMargins(0,0,0,0)
+        self.horizontal_layout.setContentsMargins(0, 0, 0, 0)
 
         # Add main_widget to the horizontal layout
         self.horizontal_layout.addWidget(self.main_widget)
@@ -109,7 +111,9 @@ class MainWindow(QMainWindow):
         # Button to open "Create Task" window
         create_task_btn = QPushButton("+")  # create button with + as text
         create_task_btn.setFixedSize(30, 30)  # set button size
-        create_task_btn.clicked.connect(self.open_create_task_window)  # set event function
+        create_task_btn.clicked.connect(
+            self.open_create_task_window
+        )  # set event function
 
         # add button to header layout
         layout.addWidget(create_task_btn)
@@ -156,20 +160,34 @@ class MainWindow(QMainWindow):
 
         # stretch head for close button
         head_layout.addStretch()
-        delete = QPushButton(f'Delete')
-        delete.setStyleSheet(f"width: 50px; padding: 5px; border-radius: 5px;")
+        delete = QPushButton('Delete')
+        delete.setStyleSheet("width: 50px; padding: 5px; border-radius: 5px;")
 
         # Add event listeners
         delete.mouseReleaseEvent = partial(self.delete_task, task_id=task.id)
 
-        edit = QPushButton(f'Edit')
-        edit.setStyleSheet(f"width: 50px; padding: 5px; border-radius: 5px; background-color: {TRUE_BG_COLOR}; color: {TRUE_TEXT_COLOR};")
+        edit = QPushButton('Edit')
+        edit.setStyleSheet(f"""
+            width: 50px;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: {TRUE_BG_COLOR};
+            color: {TRUE_TEXT_COLOR};
+        """)
 
         # Add event listeners
-        edit.mouseReleaseEvent = partial(self.open_create_task_window, task=task)
+        edit.mouseReleaseEvent = partial(
+            self.open_create_task_window, task=task
+        )
 
-        close = QPushButton(f'X')
-        close.setStyleSheet(f"width: 50px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
+        close = QPushButton('X')
+        close.setStyleSheet(f"""
+            width: 50px;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: {FALSE_BG_COLOR};
+            color: {FALSE_TEXT_COLOR};
+        """)
         close.clicked.connect(self.close_extended_tab)
 
         head_layout.addWidget(delete)
@@ -179,7 +197,7 @@ class MainWindow(QMainWindow):
 
         # create task name
         task_name = QLabel(f'{task.name}')
-        task_name.setStyleSheet(f"""
+        task_name.setStyleSheet("""
             font-size: 20px;
             font-weight: bold;
         """)
@@ -235,9 +253,15 @@ class MainWindow(QMainWindow):
             get_tasks_response = self.agenda.get_tasks()
         else:
             active_tasks = not self.show_hidden_tasks.isChecked()
-            get_tasks_response = self.agenda.get_tasks(self.date.toString('yyyy-MM-dd'), active_tasks=active_tasks)
+            get_tasks_response = self.agenda.get_tasks(
+                self.date.toString('yyyy-MM-dd'),
+                active_tasks=active_tasks
+            )
 
-        self.tasks = get_tasks_response['tasks'] if get_tasks_response['success'] else []
+        if get_tasks_response['success']:
+            self.tasks = get_tasks_response['tasks']
+        else:
+            self.tasks = []
 
         if len(self.tasks) == 0:
             no_items_label = QLabel('No items found')
@@ -248,7 +272,11 @@ class MainWindow(QMainWindow):
             layout.addWidget(no_items_label)
         else:
             try:
-                if hasattr(self, 'count_label') and self.count_label and self.count_label.isWidgetType():
+                if (
+                    hasattr(self, 'count_label')
+                    and self.count_label
+                    and self.count_label.isWidgetType()
+                ):
                     self.count_label.deleteLater()
             except RuntimeError:
                 pass
@@ -258,12 +286,17 @@ class MainWindow(QMainWindow):
 
             # Add items to the scrollable container layout
             for num, task in enumerate(self.tasks):
-                if not self.show_hidden_tasks.isChecked() and task.status in ('Cancelled', 'Completed'):
+                if (
+                    not self.show_hidden_tasks.isChecked()
+                    and task.status in ('Cancelled', 'Completed')
+                ):
                     continue
 
                 # Create item container
                 item_container = QWidget()
-                item_container.setObjectName("itemContainer")  # Set a unique object name
+
+                # Set a unique object name
+                item_container.setObjectName("itemContainer")
                 item_container.setContentsMargins(15, 0, 15, 0)
                 item_container.setFixedHeight(50)
 
@@ -277,15 +310,15 @@ class MainWindow(QMainWindow):
                         background-color: {item_bg_color};
                         color: {item_text_color};
                     }}
-                    
+
                     QWidget#itemContainer:hover {{
                         background-color: rgba(255, 255, 255, 0.15);
                     }}
-                    
+
                     QCheckBox#itemContainer {{
                         padding-right: 115px;
                     }}
-                    
+
                     QCheckBox::indicator {{
                         width: 20px;
                         height: 20px;
@@ -293,11 +326,11 @@ class MainWindow(QMainWindow):
                         border: 1px solid gray;
                         background-color: rgba(255, 255, 255, 0.1);
                     }}
-        
+
                     QCheckBox::indicator:unchecked {{
                         background-color: rgba(255, 255, 255, 0.1);
-                    }}                
-                    
+                    }}
+
                     QCheckBox::indicator:hover {{
                         background-color: rgba(46, 77, 46, 0.8);
                     }}
@@ -305,13 +338,15 @@ class MainWindow(QMainWindow):
 
                 # Set container layout
                 item_layout = QHBoxLayout(item_container)
-                item_layout.setContentsMargins(0, 0, 0, 0)  # Remove inner margins
+                item_layout.setContentsMargins(0, 0, 0, 0)
 
                 if task.status != 'Completed':
                     # Add our item info to layout
                     checkbox = QCheckBox()
                     item_layout.addWidget(checkbox)
-                    checkbox.mouseReleaseEvent = partial(self.mark_complete, task=task)
+                    checkbox.mouseReleaseEvent = partial(
+                        self.mark_complete, task=task
+                    )
 
                 task_name = task.name
                 if len(task.name) > 25:
@@ -338,14 +373,18 @@ class MainWindow(QMainWindow):
                 layout.addWidget(item_container)
 
                 # Add event listeners
-                item_container.mouseReleaseEvent = partial(self.open_task_info, task=task)
+                item_container.mouseReleaseEvent = partial(
+                    self.open_task_info, task=task
+                )
 
         # dont set spaces between items
         layout.addStretch()
 
         # Add our created content to the scrollable area
         self.scroll_area.setWidget(scrollable_content)
-        self.scroll_area.setWidgetResizable(True)  # Ensure the widget resizes with the scroll area
+
+        # Ensure the widget resizes with the scroll area
+        self.scroll_area.setWidgetResizable(True)
 
         # Add our scroll area to main content
         self.main_layout.addWidget(self.scroll_area)
@@ -370,9 +409,15 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(title)
         header_layout.addStretch()
 
-        close = QPushButton(f'X')
+        close = QPushButton('X')
         close.clicked.connect(self.close_extended_tab)
-        close.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
+        close.setStyleSheet(f"""
+            width: 75px;
+            padding: 5px;
+            border-radius: 5px;
+            background-color: {FALSE_BG_COLOR};
+            color: {FALSE_TEXT_COLOR};
+        """)
         header_layout.addWidget(close)
 
         layout.addWidget(header)  # add header to layout
@@ -402,23 +447,31 @@ class MainWindow(QMainWindow):
         self.status_combo = QComboBox()
         self.status_combo.addItems(Task.statuses())  # Example items
         if task:
-            self.status_combo.setCurrentIndex(self.status_combo.findText(task.status))
+            self.status_combo.setCurrentIndex(
+                self.status_combo.findText(task.status)
+            )
         create_form_layout.addWidget(self.status_combo)
 
         # Priority input
         self.priority_combo = QComboBox()
         self.priority_combo.addItems(Task.priorities())  # Example items
         if task:
-            self.priority_combo.setCurrentIndex(self.priority_combo.findText(task.priority))
+            self.priority_combo.setCurrentIndex(
+                self.priority_combo.findText(task.priority)
+            )
         create_form_layout.addWidget(self.priority_combo)
 
         # Datetime input
         self.datetime_input = QDateTimeEdit()
-        self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
+        self.datetime_input.setDateTime(
+            QDateTime.currentDateTime().addSecs(3600)
+        )  # Set initial value to 1 hour ahead
         self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
         if task:
             self.datetime_input.setDateTime(
-                QDateTime.fromSecsSinceEpoch(int(task.get_datetime().timestamp()))
+                QDateTime.fromSecsSinceEpoch(
+                    int(task.get_datetime().timestamp())
+                )
             )
         create_form_layout.addWidget(self.datetime_input)
 
@@ -460,7 +513,9 @@ class MainWindow(QMainWindow):
     def create_extended_tab(self, w: int = 750):
         # check if it is created
         try:
-            if hasattr(self, 'extended_widget') and self.extended_widget and self.extended_widget.isWidgetType():
+            if (hasattr(self, 'extended_widget')
+                    and self.extended_widget
+                    and self.extended_widget.isWidgetType()):
                 self.extended_widget.deleteLater()
         except RuntimeError:
             # Handle the case when the widget has already been deleted
@@ -484,7 +539,8 @@ class MainWindow(QMainWindow):
 
     def close_extended_tab(self):
         try:
-            if hasattr(self, 'extended_widget') and self.extended_widget is not None:
+            if (hasattr(self, 'extended_widget')
+                    and self.extended_widget is not None):
                 self.extended_widget.deleteLater()
         except RuntimeError:
             # Handle the case when the widget has already been deleted
@@ -499,14 +555,21 @@ class MainWindow(QMainWindow):
         date = self.datetime_input.dateTime().toPython()
 
         # check if inputs are not empty
-        if name == '' or selected_status == '' or selected_priority == '' or date == '':
+        if (name == '' or selected_status == '' or
+                selected_priority == '' or date == ''):
             return
 
         if task:
-            action_response = self.agenda.update_task(task.id, name, description, date, selected_priority, selected_status)
+            action_response = self.agenda.update_task(
+                task.id, name, description,
+                date, selected_priority, selected_status
+            )
         else:
             # create task
-            action_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
+            action_response = self.agenda.add_task(
+                name, description, date,
+                selected_priority, selected_status
+            )
 
         if not action_response['success']:
             print(action_response['message'])
@@ -530,6 +593,7 @@ class MainWindow(QMainWindow):
 
         self.close_extended_tab()
         self.update_tasks_list()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
