@@ -25,6 +25,9 @@ Here are some screenshots of the app in action:
 ### Edit Task
 ![Mark Task as Completed](assets/prev-4.png)
 
+### Inspect all tasks also that are cancelled or completed
+![Mark Task as Completed](assets/prev-5.png)
+
 ## Installation 🔧
 
 ### Prerequisites 📦
