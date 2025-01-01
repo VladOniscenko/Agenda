@@ -100,8 +100,29 @@ class AgendaController:
             'tasks': [Task(*raw_task[:5], identifier=raw_task[5]) for raw_task in raw_tasks]
         }
 
-    def update_task(self, task_id: int):
-        pass
+    def update_task(self, task_id: int, name: str, description: str, date: datetime, priority: str, status: str):
+        # Update task in the database
+        result = self.db.execute(
+            """
+            UPDATE tasks
+            SET name = ?, description = ?, date = ?, priority = ?, status = ?
+            WHERE id = ? AND user_id = ?
+            """,
+            (name, description, date, priority, status, task_id, self.user_id)
+        )
+
+        if not result:
+            # Return false if the task was not updated
+            return {
+                'success': False,
+                'message': 'Something went wrong! Task could not be updated'
+            }
+
+        # Return success with the updated Task instance
+        return {
+            'success': True,
+            'task': Task(name, description, date, priority, status, identifier=task_id)
+        }
 
     def delete_task(self, task_id: int):
         # delete task from database

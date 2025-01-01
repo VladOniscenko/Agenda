@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
 
     def open_task_info(self, _, task: Task):
         item_bg_color, item_text_color = task.status_color
-        widget, layout = self.create_extended_tab()
+        widget, layout = self.create_extended_tab(600)
 
         # Construct head of info widget
         head = QWidget()
@@ -155,10 +155,17 @@ class MainWindow(QMainWindow):
         # stretch head for close button
         head_layout.addStretch()
 
+        edit = QPushButton(f'Edit')
+        edit.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {TRUE_BG_COLOR}; color: {TRUE_TEXT_COLOR};")
+
+        # Add event listeners
+        edit.mouseReleaseEvent = partial(self.open_create_task_window, task=task)
+
         close = QPushButton(f'X')
         close.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
         close.clicked.connect(self.close_extended_tab)
 
+        head_layout.addWidget(edit)
         head_layout.addWidget(close)
         layout.addWidget(head)
 
@@ -179,7 +186,6 @@ class MainWindow(QMainWindow):
         task_name.setWordWrap(True)
         layout.addWidget(task_name)
 
-        self.setFixedWidth(int(WIDTH * 2.5))
         self.horizontal_layout.addWidget(widget)
 
         print(task)
@@ -326,7 +332,11 @@ class MainWindow(QMainWindow):
         # Add our scroll area to main content
         self.main_layout.addWidget(self.scroll_area)
 
-    def open_create_task_window(self):
+    def open_create_task_window(self, _, task: Task = None):
+        heading = 'Create Task'
+        if task:
+            heading = 'Edit Task'
+
         widget, layout = self.create_extended_tab(300)
 
         header = QWidget()
@@ -334,7 +344,7 @@ class MainWindow(QMainWindow):
         header_layout.setContentsMargins(0, 0, 0, 0)
 
         # title and close button
-        title = QLabel('Create Task')
+        title = QLabel(heading)
         title.setStyleSheet("""
             font-weight: bold;
             font-size: 20px;
@@ -358,28 +368,40 @@ class MainWindow(QMainWindow):
         # Name input
         self.name_input = QLineEdit()  # Name input
         self.name_input.setPlaceholderText("Name...")
+        if task:
+            self.name_input.setText(task.name)
         create_form_layout.addWidget(self.name_input)
 
         # Description input
         self.description_input = QTextEdit()
         self.description_input.setPlaceholderText("Description...")
         self.description_input.setFixedHeight(75)
+        if task:
+            self.description_input.setText(task.description)
         create_form_layout.addWidget(self.description_input)
 
         # Status input
         self.status_combo = QComboBox()
-        self.status_combo.addItems(["Pending", "In Progress", "Completed"])  # Example items
+        self.status_combo.addItems(Task.statuses())  # Example items
+        if task:
+            self.status_combo.setCurrentIndex(self.status_combo.findText(task.status))
         create_form_layout.addWidget(self.status_combo)
 
         # Priority input
         self.priority_combo = QComboBox()
-        self.priority_combo.addItems(["Low", "Medium", "High"])  # Example items
+        self.priority_combo.addItems(Task.priorities())  # Example items
+        if task:
+            self.priority_combo.setCurrentIndex(self.priority_combo.findText(task.priority))
         create_form_layout.addWidget(self.priority_combo)
 
         # Datetime input
         self.datetime_input = QDateTimeEdit()
         self.datetime_input.setDateTime(QDateTime.currentDateTime().addSecs(3600))  # Set initial value to 1 hour ahead
         self.datetime_input.setCalendarPopup(True)  # Enable the calendar popup
+        if task:
+            self.datetime_input.setDateTime(
+                QDateTime.fromSecsSinceEpoch(int(task.get_datetime().timestamp()))
+            )
         create_form_layout.addWidget(self.datetime_input)
 
         # Submit button
@@ -391,7 +413,7 @@ class MainWindow(QMainWindow):
             border-radius: 5px;
             border: none;
         """)
-        submit_button.clicked.connect(self.submit_task)  # Connect the submit task method
+        submit_button.mouseReleaseEvent = partial(self.submit_task, task=task)
         create_form_layout.addWidget(submit_button)
 
         layout.addWidget(create_form)
@@ -431,9 +453,7 @@ class MainWindow(QMainWindow):
         self.extended_layout = QVBoxLayout(self.extended_widget)
         self.extended_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.extended_widget.setVisible(False)
         self.extended_widget.setObjectName("createWidget")
-
         self.extended_widget.setStyleSheet(f"""
             QWidget#createWidget {{
                 background-color: {SECOND_BG_COLOR};
@@ -442,8 +462,6 @@ class MainWindow(QMainWindow):
 
         self.setFixedWidth(WIDTH + w)
         self.horizontal_layout.addWidget(self.extended_widget)
-        self.extended_widget.setVisible(True)
-
         return self.extended_widget, self.extended_layout
 
     def close_extended_tab(self):
@@ -455,7 +473,7 @@ class MainWindow(QMainWindow):
             pass
         self.setFixedWidth(WIDTH)
 
-    def submit_task(self):
+    def submit_task(self, _, task: Task = None):
         name = self.name_input.text()
         description = self.description_input.toPlainText()
         selected_status = self.status_combo.currentText()
@@ -466,17 +484,23 @@ class MainWindow(QMainWindow):
         if name == '' or selected_status == '' or selected_priority == '' or date == '':
             return
 
-        # create task
-        create_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
-        if not create_response['success']:
-            print(create_response['message'])
+        if task:
+            action_response = self.agenda.update_task(task.id, name, description, date, selected_priority, selected_status)
+        else:
+            # create task
+            action_response = self.agenda.add_task(name, description, date, selected_priority, selected_status)
+
+        if not action_response['success']:
+            print(action_response['message'])
             return
 
-        task = create_response['task']
-        print(f"Task created! id: {task.id}")
+        task = action_response['task']
+        if task:
+            print(f'Task updated! id: {task.id}')
+        else:
+            print(f"Task created! id: {task.id}")
 
         self.close_extended_tab()
-        self.tasks.append(task)
         self.update_tasks_list()
 
 if __name__ == '__main__':
