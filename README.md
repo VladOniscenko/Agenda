@@ -38,3 +38,7 @@ Here are some screenshots of the app in action:
 
    ```bash
    pip install -r requirements.txt
+
+## 💖 Made with love by Oni 😈
+
+This project was made for learning PySide6 and how to create GUIs, as well as improving my skills in desktop application development.
