@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         self.calendar.setCalendarPopup(True)
         self.calendar.dateChanged.connect(self.change_date)
 
-        self.show_hidden_tasks = QCheckBox('Show processed')
+        self.show_hidden_tasks = QCheckBox('Show all')
         self.show_hidden_tasks.clicked.connect(self.update_tasks_list)
 
         self.show_all = QCheckBox('Show all dates')
