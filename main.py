@@ -154,17 +154,23 @@ class MainWindow(QMainWindow):
 
         # stretch head for close button
         head_layout.addStretch()
+        delete = QPushButton(f'Delete')
+        delete.setStyleSheet(f"width: 50px; padding: 5px; border-radius: 5px;")
+
+        # Add event listeners
+        delete.mouseReleaseEvent = partial(self.delete_task, task_id=task.id)
 
         edit = QPushButton(f'Edit')
-        edit.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {TRUE_BG_COLOR}; color: {TRUE_TEXT_COLOR};")
+        edit.setStyleSheet(f"width: 50px; padding: 5px; border-radius: 5px; background-color: {TRUE_BG_COLOR}; color: {TRUE_TEXT_COLOR};")
 
         # Add event listeners
         edit.mouseReleaseEvent = partial(self.open_create_task_window, task=task)
 
         close = QPushButton(f'X')
-        close.setStyleSheet(f"width: 75px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
+        close.setStyleSheet(f"width: 50px; padding: 5px; border-radius: 5px; background-color: {FALSE_BG_COLOR}; color: {FALSE_TEXT_COLOR};")
         close.clicked.connect(self.close_extended_tab)
 
+        head_layout.addWidget(delete)
         head_layout.addWidget(edit)
         head_layout.addWidget(close)
         layout.addWidget(head)
@@ -499,6 +505,16 @@ class MainWindow(QMainWindow):
             print(f'Task updated! id: {task.id}')
         else:
             print(f"Task created! id: {task.id}")
+
+        self.close_extended_tab()
+        self.update_tasks_list()
+
+    def delete_task(self, _, task_id: int):
+        action_response = self.agenda.delete_task(task_id)
+        if action_response['success']:
+            print(f'Task deleted! id: {task_id}')
+        else:
+            print(action_response['message'])
 
         self.close_extended_tab()
         self.update_tasks_list()
