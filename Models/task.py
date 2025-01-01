@@ -74,12 +74,7 @@ class Task:
     @property
     def task_time_label(self):
         current_date = datetime.now()
-
-        # Convert task.date string to QDateTime
-        try:
-            task_date = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S.%f")
-        except ValueError:
-            task_date = datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S")
+        task_date = self.get_datetime()
 
         # Compare the task date with the current date
         if task_date.date() == current_date.date():
@@ -92,3 +87,10 @@ class Task:
             time_label_text = task_date.strftime('%d-%m-%Y')
 
         return time_label_text
+
+    def get_datetime(self):
+        # Convert task.date string to QDateTime
+        try:
+            return datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S.%f")
+        except ValueError:
+            return datetime.strptime(self.date, "%Y-%m-%d %H:%M:%S")
