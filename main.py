@@ -3,6 +3,7 @@ import sys
 from functools import partial
 from PySide6.QtCore import Qt
 from PySide6.QtCore import QDateTime
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QPushButton, QWidget, QVBoxLayout, QScrollArea, QLabel, QMainWindow, QApplication, \
     QHBoxLayout, QDateTimeEdit, QComboBox, QTextEdit, QLineEdit, QCheckBox
 
@@ -36,6 +37,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Todo's Manager")
+        self.setWindowIcon(QIcon('./assets/icon-w.png'))
         self.agenda = AgendaController(1)
 
         self.date = QDateTime.currentDateTime()
@@ -180,17 +182,22 @@ class MainWindow(QMainWindow):
         task_name.setStyleSheet(f"""
             font-size: 20px;
             font-weight: bold;
-            border: solid 1px pink;
         """)
         task_name.setWordWrap(True)
         layout.addWidget(task_name)
 
+        # add datetime
+        d = task.get_datetime()
+        task_date = QLabel(f'{d.strftime("%d %b %Y %H:%M")}')
+        task_date.setWordWrap(True)
+        layout.addWidget(task_date)
+
         # create task description
-        task_name = QLabel(f'{task.description}')
-        task_name.setStyleSheet("""
+        task_description = QLabel(f'{task.description}')
+        task_description.setStyleSheet("""
         """)
-        task_name.setWordWrap(True)
-        layout.addWidget(task_name)
+        task_description.setWordWrap(True)
+        layout.addWidget(task_description)
 
         self.horizontal_layout.addWidget(widget)
 

@@ -57,7 +57,7 @@ class ContextManager:
                 description TEXT NULL,
                 date DATETIME NOT NULL,
                 status TEXT NOT NULL CHECK (status IN ('Pending', 'In Progress', 'Completed', 'On Hold', 'Cancelled')),
-                priority INTEGER NOT NULL,
+                priority TEXT NOT NULL,
                 user_id INTEGER,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
