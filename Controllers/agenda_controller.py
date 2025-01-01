@@ -74,14 +74,13 @@ class AgendaController:
 
         # Append sorting logic
         query += """
-            ORDER BY date,
-                     CASE priority
-                         WHEN 'Critical' THEN 1
-                         WHEN 'High' THEN 2
-                         WHEN 'Medium' THEN 3
-                         WHEN 'Low' THEN 4
-                         ELSE 4
-                     END;
+            ORDER BY CASE priority
+                WHEN 'Critical' THEN 1
+                WHEN 'High' THEN 2
+                WHEN 'Medium' THEN 3
+                WHEN 'Low' THEN 4
+                ELSE 5
+            END;
         """
 
         # search for tasks in database
