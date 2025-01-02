@@ -41,7 +41,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Todo's Manager")
-        self.setWindowIcon(QIcon(self.resource_path('./assets/icon-w.png')))
+        self.setWindowIcon(QIcon(self.resource_path('assets/icon-w.png')))
         self.agenda = AgendaController(1)
 
         self.date = QDateTime.currentDateTime()
@@ -95,7 +95,11 @@ class MainWindow(QMainWindow):
         :param relative_path: The relative path to the resource.
         :return: The absolute path to the resource.
         """
-        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+        try:
+            base_path = getattr(sys, '_MEIPASS', os.path.abspath('.'))
+        except AttributeError:
+            base_path = os.path.abspath('.')
+
         return os.path.join(base_path, relative_path)
 
     def init_system_tray(self):
@@ -650,4 +654,4 @@ if __name__ == '__main__':
     window.setFixedSize(WIDTH, HEIGHT)
     window.move(0, 0)
 
-    app.exec()
+    sys.exit(app.exec())
