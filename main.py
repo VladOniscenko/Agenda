@@ -3,11 +3,11 @@ import sys
 from functools import partial
 from PySide6.QtCore import Qt
 from PySide6.QtCore import QDateTime
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import (QPushButton, QWidget, QVBoxLayout,
                                QScrollArea, QLabel, QMainWindow,
                                QApplication, QHBoxLayout, QDateTimeEdit,
-                               QComboBox, QTextEdit, QLineEdit, QCheckBox)
+                               QComboBox, QTextEdit, QLineEdit, QCheckBox, QSystemTrayIcon, QMenu)
 
 from Controllers.agenda_controller import AgendaController
 from Models.task import Task
@@ -77,8 +77,36 @@ class MainWindow(QMainWindow):
         # Set the parent layout widget as the central widget
         self.setCentralWidget(self.parent_layout_widget)
 
-        # show / open our window
-        self.show()
+        # Initialize the system tray
+        self.init_system_tray()
+
+    def init_system_tray(self):
+        self.tray_icon = QSystemTrayIcon(self)
+        self.tray_icon.setIcon(QIcon('./assets/icon-w.png'))
+
+        # Create tray menu
+        tray_menu = QMenu()
+
+        quit_action = QAction("Quit", self)
+        quit_action.triggered.connect(QApplication.instance().quit)
+        tray_menu.addAction(quit_action)
+
+        self.tray_icon.setContextMenu(tray_menu)
+
+        # Show tray icon
+        self.tray_icon.show()
+
+        # Handle double-click to show the window
+        self.tray_icon.activated.connect(self.on_tray_icon_activated)
+
+    def on_tray_icon_activated(self, reason):
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.show()
+
+    def closeEvent(self, event):
+        # ignore close event and hide window
+        event.ignore()
+        self.hide()
 
     def create_header(self):
         # create header layout type (horizontal layout)
