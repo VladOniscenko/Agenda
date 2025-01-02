@@ -80,6 +80,9 @@ class MainWindow(QMainWindow):
         # Initialize the system tray
         self.init_system_tray()
 
+        # show widget
+        self.show()
+
     def init_system_tray(self):
         self.tray_icon = QSystemTrayIcon(self)
         self.tray_icon.setIcon(QIcon('./assets/icon-w.png'))
@@ -105,6 +108,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         # ignore close event and hide window
+        self.close_extended_tab()
         event.ignore()
         self.hide()
 
