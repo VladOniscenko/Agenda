@@ -80,6 +80,9 @@ class MainWindow(QMainWindow):
         # Initialize the system tray
         self.init_system_tray()
 
+        # Make the window stay on top
+        self.setWindowFlag(Qt.WindowStaysOnTopHint)
+
         # show widget
         self.show()
 
