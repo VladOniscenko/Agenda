@@ -1,20 +1,18 @@
 import os.path
 import sqlite3
+import sys
 
 
 class ContextManager:
     def __init__(self):
-        # Ensure the database file exists
-        db_path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            'database.db'
-        )
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        db_path = os.path.join(base_path, 'database.db')
 
-        # Create the file if it doesn't exist
+        # Create database if doesnt exist
         if not os.path.exists(db_path):
             open(db_path, 'w').close()
 
-        # Establish a connection to the SQLite database
+        # Create connection with database
         self.__connection = sqlite3.connect(db_path)
         self.__cursor = self.__connection.cursor()
         self.create_tables()

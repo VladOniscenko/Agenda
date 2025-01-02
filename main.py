@@ -1,3 +1,4 @@
+import os
 import sys
 
 from functools import partial
@@ -40,7 +41,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Todo's Manager")
-        self.setWindowIcon(QIcon('./assets/icon-w.png'))
+        self.setWindowIcon(QIcon(self.resource_path('./assets/icon-w.png')))
         self.agenda = AgendaController(1)
 
         self.date = QDateTime.currentDateTime()
@@ -85,6 +86,17 @@ class MainWindow(QMainWindow):
 
         # show widget
         self.show()
+
+    @staticmethod
+    def resource_path(relative_path):
+        """
+        Get the absolute path to a resource, depending on the execution environment.
+
+        :param relative_path: The relative path to the resource.
+        :return: The absolute path to the resource.
+        """
+        base_path = getattr(sys, '_MEIPASS', os.path.abspath("."))
+        return os.path.join(base_path, relative_path)
 
     def init_system_tray(self):
         self.tray_icon = QSystemTrayIcon(self)
