@@ -4,13 +4,18 @@ import sqlite3
 
 class ContextManager:
     def __init__(self):
-        self.__connection = sqlite3.connect(
-            os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                'database.db'
-            )
+        # Ensure the database file exists
+        db_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            'database.db'
         )
 
+        # Create the file if it doesn't exist
+        if not os.path.exists(db_path):
+            open(db_path, 'w').close()
+
+        # Establish a connection to the SQLite database
+        self.__connection = sqlite3.connect(db_path)
         self.__cursor = self.__connection.cursor()
         self.create_tables()
 
